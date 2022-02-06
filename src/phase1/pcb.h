@@ -20,9 +20,9 @@ static pcb_PTR pcbFree_table[MAXPROC];
 
 void initPcbs(){ //TODO
     int i = 0;
-    pcbFree_h->p_list;
-    struct list_head iter = pcbFree_h->p_list;
-    pcb_PTR tmp = pcbFree_table[0];
+    //pcbFree_h->p_list;
+    //struct list_head iter = pcbFree_h->p_list;
+    //pcb_PTR tmp = pcbFree_table[0];
     while(i < MAXPROC){
         pcb_PTR tmp1 = malloc(sizeof(pcb_t));
         tmp1 = pcbFree_table[i];
