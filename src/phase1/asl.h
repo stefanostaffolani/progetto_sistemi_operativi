@@ -57,3 +57,34 @@ pcb_PTR headBlocked(int *semAdd){
     return NULL;
 }
 
+pcb_PTR outBlocked(pcb_PTR p){
+    int sem = p->p_semAdd;
+    struct  list_head *iter;
+    list_for_each(iter, semd_h){
+        if(container_of(iter, semd_t, s_link)->s_key == sem){
+            list_del(&p->p_list);
+            if(list_empty(semd_h)){
+                list_del(&(container_of(iter, semd_t, s_link)->s_link));
+                list_add(&(container_of(iter, semd_t, s_link)->s_link), semdFree_h);
+            }
+            return p;
+        }
+    }
+    return NULL;   // condizione di errore
+}
+
+pcb_PTR removeBlocked(int *semAdd){
+    struct list_head *iter;
+    list_for_each(iter, semd_h){
+        if(container_of(iter, semd_t, s_link)->s_key == *semAdd){
+            pcb_PTR retp = container_of(iter, semd_t, s_link)->s_procq.next;
+            list_del(container_of(iter, semd_t, s_link)->s_procq.next);
+            if(list_empty(&(container_of(iter, semd_t, s_link)->s_procq))){
+                list_del(&(container_of(iter, semd_t, s_link)->s_link));
+                list_add(&(container_of(iter, semd_t, s_link)->s_link), semdFree_h);
+            }
+            return retp;
+        }
+    }
+    return NULL;  // condizione di errore
+}
