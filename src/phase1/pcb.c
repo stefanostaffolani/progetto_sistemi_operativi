@@ -22,10 +22,10 @@ pcb_PTR allocPcb(){
     }
     pcb_PTR tmp =  container_of(pcbFree_h.next, pcb_t, p_list);
     //tmp->p_child.next = NULL;
-    //tmp->p_child.prev = NULL;
-    //tmp->p_list.next = NULL;
-    //tmp->p_list.prev = NULL;
-    //tmp->p_parent = NULL;
+    list_del(list_next(&pcbFree_h));
+    INIT_LIST_HEAD(&tmp->p_child);
+    INIT_LIST_HEAD(&tmp->p_list);
+    tmp->p_parent = NULL;
     //tmp->p_s.cause = 0;
     //tmp->p_s.entry_hi = 0;
     //tmp->p_s.hi = 0;
@@ -33,11 +33,10 @@ pcb_PTR allocPcb(){
     //tmp->p_s.pc_epc = 0;
     //tmp->p_s.status = 0;
     //tmp->p_semAdd = NULL;
-    //tmp->p_sib.next = NULL;
-    //tmp->p_sib.prev = NULL;
+    INIT_LIST_HEAD(&tmp->p_sib);
     //tmp->p_time = 0;
     //pcbFree_h = *pcbFree_h.next;
-    list_del(list_next(&pcbFree_h));
+    //list_del(list_next(&pcbFree_h));
     return tmp;
 }
 
@@ -53,7 +52,7 @@ pcb_PTR headProcQ(struct list_head *head){
     if(list_empty(head)){
         return NULL;
     }
-    pcb_PTR ret_val = container_of(head->next, pcb_t, p_list);
+    pcb_PTR ret_val = container_of(head->prev, pcb_t, p_list);
     return ret_val;
 }
 
@@ -62,36 +61,33 @@ void insertProcQ(struct list_head* head, pcb_PTR p){
 }
 
 pcb_t* outProcQ(struct list_head* head, pcb_t *p){
-    struct list_head *iter = head;
+    struct list_head *iter;
     int found = FALSE;
-    while(iter != NULL && (found == FALSE)){
-        if(iter == p){
+    list_for_each(iter, head){
+        if(iter == &(p->p_list)){
             list_del(iter);
             found = TRUE;
-        }else{
-            iter = iter->next;
-        }
-        if(iter == head){
-            found = FALSE;
+            break;
         }
     }
-    return NULL;
+    if(!found) return NULL;
+    else return container_of(iter,pcb_t, p_list);
 }
 
 pcb_PTR removeProcQ(struct list_head* head){
     if(list_empty(head)){
         return NULL;
     }
-    struct list_head *tmp = head->next;
-    list_del(tmp);
+    pcb_PTR tmp = container_of(head->prev, pcb_t, p_list);
+    list_del(head->prev);
     return tmp;
 }
 
 int emptyChild(pcb_PTR p){
     if(list_empty(&p->p_child))
-        return FALSE;
-    else 
         return TRUE;
+    else 
+        return FALSE;
 }
 
 void insertChild(pcb_PTR pnrt, pcb_PTR p){
@@ -102,23 +98,27 @@ void insertChild(pcb_PTR pnrt, pcb_PTR p){
 }
 
 pcb_PTR removeChild(pcb_PTR p){
-    if(list_empty(p)){
+    if(list_empty(&p->p_child)){
         return NULL;
     }
     pcb_PTR sib = container_of(p->p_child.next, pcb_t, p_sib);
-    list_del(&sib->p_sib);
+    pcb_PTR son = container_of(p->p_child.next, pcb_t, p_child);
     list_del(p->p_child.next);
-    list_add(&p->p_child, &sib->p_child);
+    list_del(sib->p_sib.prev);
+    p->p_child.next = &sib->p_child;
+    //list_add(&p->p_child, &sib->p_child);
     p->p_parent = NULL;
+    return son;
 }
 
 pcb_PTR outChild(pcb_PTR p){
     pcb_PTR daddy = p->p_parent;
-    if(daddy = NULL) return NULL;
+    if(daddy == NULL) return NULL;
     pcb_PTR sib = container_of(p->p_sib.next, pcb_t, p_sib);
     list_del(&p->p_sib);
     if(daddy->p_child.next == &p->p_child){    //se e' il primo figlio
         list_del(&p->p_child);
         daddy->p_child.next = &sib->p_child;
     }
+    return p;
 }
