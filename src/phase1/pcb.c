@@ -91,21 +91,28 @@ int emptyChild(pcb_PTR p){
 }
 
 void insertChild(pcb_PTR pnrt, pcb_PTR p){
-    pcb_PTR sib = container_of(pnrt->p_child.next, pcb_t, p_sib);
-    list_add(&p->p_sib, &sib->p_sib);
-    pnrt->p_child.next = &p->p_sib;
-    p->p_parent = pnrt;
+    if(list_empty(&pnrt->p_child)){
+        pnrt->p_child.next = &p->p_sib;
+        p->p_parent = pnrt;
+    }else{
+        list_add_tail(&p->p_sib, &pnrt->p_child);
+        p->p_parent = pnrt;
+    }
 }
 
 pcb_PTR removeChild(pcb_PTR p){
     if(list_empty(&p->p_child)){
         return NULL;
     }
-    pcb_PTR sib = container_of(p->p_child.next, pcb_t, p_sib);
-    pcb_PTR son = container_of(p->p_child.next, pcb_t, p_child);
+    pcb_PTR son = container_of(p->p_child.next, pcb_t, p_sib);
     list_del(p->p_child.next);
-    list_del(sib->p_sib.prev);
-    p->p_child.next = &sib->p_sib;
+
+
+    //pcb_PTR sib = container_of(p->p_child.next, pcb_t, p_sib);
+    //pcb_PTR son = container_of(p->p_child.next, pcb_t, p_sib);
+    //list_del(p->p_child.next);
+    //list_del(sib->p_sib.prev);
+    //p->p_child.next = &sib->p_sib;
     //list_add(&p->p_child, &sib->p_child);
     p->p_parent = NULL;
     return son;
