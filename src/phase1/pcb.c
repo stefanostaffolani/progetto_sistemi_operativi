@@ -6,50 +6,50 @@ void initPcbs(){ //TODO
     int i = 0;
     INIT_LIST_HEAD(&pcbFree_h);
     while(i < MAXPROC){
-        list_add_tail(&(pcbFree_table[i]->p_list), &pcbFree_h);   //aggiunge in coda
-        INIT_LIST_HEAD(&(pcbFree_table[i]->p_child));
+        list_add_tail(&(pcbFree_table[i].p_list), &pcbFree_h);   //aggiunge in coda
+        INIT_LIST_HEAD(&(pcbFree_table[i].p_child));
         i++;
     }
 }
 
 void freePcb(pcb_PTR p){
-    list_add_tail(&p->p_list, &pcbFree_h->p_list);
+    list_add_tail(&(p->p_list), &pcbFree_h);
 }
 
 pcb_PTR allocPcb(){
-    if(list_empty(&pcbFree_h->p_list)){
+    if(list_empty(&pcbFree_h)){
         return NULL;
     }
-    //pcb_PTR tmp = malloc(sizeof(pcb_t));
-    pcb_PTR tmp =  pcbFree_h->p_list.next;
-    tmp->p_child.next = NULL;
-    tmp->p_child.prev = NULL;
-    tmp->p_list.next = NULL;
-    tmp->p_list.prev = NULL;
-    tmp->p_parent = NULL;
-    tmp->p_s.cause = NULL;
-    tmp->p_s.entry_hi = NULL;
-    tmp->p_s.hi = NULL;
-    tmp->p_s.lo = NULL;
-    tmp->p_s.pc_epc = NULL;
-    tmp->p_s.status = NULL;
-    tmp->p_semAdd = NULL;
-    tmp->p_sib.next = NULL;
-    tmp->p_sib.prev = NULL;
-    tmp->p_time = NULL;
-    list_del(&tmp->p_list);
+    pcb_PTR tmp =  container_of(pcbFree_h.next, pcb_t, p_list);
+    //tmp->p_child.next = NULL;
+    //tmp->p_child.prev = NULL;
+    //tmp->p_list.next = NULL;
+    //tmp->p_list.prev = NULL;
+    //tmp->p_parent = NULL;
+    //tmp->p_s.cause = 0;
+    //tmp->p_s.entry_hi = 0;
+    //tmp->p_s.hi = 0;
+    //tmp->p_s.lo = 0;
+    //tmp->p_s.pc_epc = 0;
+    //tmp->p_s.status = 0;
+    //tmp->p_semAdd = NULL;
+    //tmp->p_sib.next = NULL;
+    //tmp->p_sib.prev = NULL;
+    //tmp->p_time = 0;
+    //pcbFree_h = *pcbFree_h.next;
+    list_del(list_next(&pcbFree_h));
     return tmp;
 }
 
 int emptyProcQ(struct list_head *head){
-    return head == NULL;
+    return list_empty(head);
 }
 
 void mkEmptyProcQ(struct list_head *head){
     INIT_LIST_HEAD(head);
 }
 
-pcb_PTR headProcQ(struct list_head* head){
+pcb_PTR headProcQ(struct list_head *head){
     if(list_empty(head)){
         return NULL;
     }

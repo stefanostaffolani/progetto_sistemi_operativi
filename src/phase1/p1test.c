@@ -172,6 +172,8 @@ int main(void) {
         adderrbuf("emptyProcQ: unexpected TRUE");
 
     /* Check outProc and headProc */
+    if (headProcQ(&qa) == NULL)
+        addokbuf("head is null");
     if (headProcQ(&qa) != firstproc)
         adderrbuf("headProcQ failed   ");
     q = outProcQ(&qa, firstproc);

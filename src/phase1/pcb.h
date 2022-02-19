@@ -13,10 +13,9 @@
 
 // implementazione veloce, da controllare e commentare!!!
 
-//pcb_t pcbFree_table[MAXPROC];
-static pcb_PTR pcbFree_h;
+static struct list_head pcbFree_h;
 
-static pcb_PTR pcbFree_table[MAXPROC];
+static pcb_t pcbFree_table[MAXPROC];
 
 void initPcbs();
 
