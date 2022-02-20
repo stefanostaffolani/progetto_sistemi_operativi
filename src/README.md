@@ -1,8 +1,8 @@
-##Sorgenti relativi alla fase 1 del progetto PandOs.
+## Sorgenti relativi alla fase 1 del progetto PandOs.
 
-#Compilazione:
+# Compilazione:
 - Spostarsi nella cartella phase1/ 
 - Lanciare make.
 
-#Run:
+# Run:
 - Lanciare la configurazione della macchina µMPS3 dentro phase1
