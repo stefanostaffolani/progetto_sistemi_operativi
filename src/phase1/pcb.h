@@ -2,6 +2,10 @@
 #define PCB_H_INCLUDED
 #endif
 
+#ifndef bool
+#define bool int
+#endif
+
 #ifndef TRUE
 #define TRUE 1
 #endif
@@ -11,19 +15,15 @@
 
 #include "pandos_types.h"
 
-// implementazione veloce, da controllare e commentare!!!
-
-static struct list_head pcbFree_h;
-
-static pcb_t pcbFree_table[MAXPROC];
-
 void initPcbs();
+
+void insertProcQ(struct list_head *, pcb_PTR);
 
 void freePcb(pcb_PTR);
 
 pcb_PTR allocPcb();
 
-int emptyProcQ(struct list_head *);
+bool emptyProcQ(struct list_head *);
 
 void mkEmptyProcQ(struct list_head *);
 
@@ -33,7 +33,7 @@ pcb_t* outProcQ(struct list_head *, pcb_t *);
 
 pcb_PTR removeProcQ(struct list_head *);
 
-int emptyChild(pcb_PTR);
+bool emptyChild(pcb_PTR);
 
 void insertChild(pcb_PTR, pcb_PTR);
 

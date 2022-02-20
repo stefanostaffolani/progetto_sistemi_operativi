@@ -2,6 +2,10 @@
 #define ASL_H_INCLUDED
 #endif
 
+#ifndef bool
+#define bool int
+#endif
+
 #ifndef TRUE
 #define TRUE 1
 #endif
@@ -11,13 +15,7 @@
 
 #include "pcb.h"
 
-static semd_t semd_table[MAXPROC];
-
-static struct list_head *semdFree_h;
-
-static struct list_head *semd_h;
-
-int insertBlocked(int *, pcb_PTR);
+bool insertBlocked(int *, pcb_PTR);
 
 void initASL();
 
