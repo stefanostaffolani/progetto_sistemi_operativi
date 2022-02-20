@@ -2,7 +2,7 @@
 
 #Compilazione:
 - Spostarsi nella cartella phase1/ 
-- lanciare make.
+- Lanciare make.
 
 #Run:
-- lanciare la configurazione della macchina µMPS3 dentro phase1
+- Lanciare la configurazione della macchina µMPS3 dentro phase1
