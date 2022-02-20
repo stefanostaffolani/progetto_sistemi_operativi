@@ -32,4 +32,4 @@ libumps.o: $(SDIR)/libumps.S
 	$(CC) $(CFLAGS) -c -o libumps.o $(SDIR)/libumps.S
 
 clean:
-	rm kernel *.o
+	rm kernel *.o *.umps

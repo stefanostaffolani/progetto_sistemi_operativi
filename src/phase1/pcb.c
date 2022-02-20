@@ -91,7 +91,7 @@ coda dei processi puntata da head.
 */
 
 void insertProcQ(struct list_head* head, pcb_PTR p){
-    list_add(&(p->p_list),head);
+    list_add(&(p->p_list),head);     //inserisce in testa
 }
 
 /* 
@@ -106,7 +106,7 @@ pcb_PTR removeProcQ(struct list_head* head){
         return NULL;
     }
     pcb_PTR tmp = container_of(head->prev, pcb_t, p_list);
-    list_del(head->prev);
+    list_del(head->prev);      //rimuove dalla coda 
     return tmp;
 }
 
