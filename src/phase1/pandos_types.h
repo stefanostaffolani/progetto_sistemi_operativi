@@ -16,7 +16,7 @@ typedef signed int   cpu_t;
 typedef unsigned int memaddr;
 
 
-/* process table entry type */
+/* process passupvector_ttable entry type */
 typedef struct pcb_t {
     /* process queue  */
     struct list_head p_list;

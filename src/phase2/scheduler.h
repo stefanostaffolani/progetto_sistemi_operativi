@@ -1,3 +1,5 @@
+#include "pandos_types.h"
+#include "pandos_const.h"
 #include "../phase1/asl.h"
 #include "../phase1/pcb.h"
 
@@ -10,6 +12,3 @@ int ProcessCount;
 int SoftBlockedCount;
 //------------------------------------------------------------------------------------------------------
 void scheduler();
-
-
-
