@@ -21,8 +21,6 @@ Pointer to the pcb that is in the “running” state,
 i.e. the current executing process.*/
 pcb_PTR currentProcess; 
 
-state_t initState;
-
 // inizializzare i vari semafori
 
 passupvector_t* PassUpVector;
@@ -31,11 +29,17 @@ extern void uTLB_RefillHandler();
 
 extern void exeptionHandler();   // TODO!!
 
+extern void test(); /* test function in p2test*/
+
 int dSemaphores[MAXSEM];
 
 int main(){
 
-    PassUpVector = PASSUPVECTOR;
+    //unsigned int ramtop;
+    //devregarea_t* deviceInfo = (devregarea_t *) RAMBASEADDR;
+    //ramtop = (deviceInfo -> rambase) + (deviceInfo -> ramsize);
+
+    PassUpVector = (passupvector_t*) PASSUPVECTOR;
     PassUpVector->tlb_refill_handler = (memaddr) uTLB_RefillHandler;
     PassUpVector->exception_stackPtr = (memaddr) KERNELSTACK;
     PassUpVector->exception_handler = (memaddr) exeptionHandler;
@@ -62,9 +66,14 @@ int main(){
     mkEmptyProcQ(&initPcb->p_sib);
     prCount++;
     
-    STST(&initState);
+    STST(&initPcb);
+    //initPcb->p_s.s_sp = ramtop;
+    initPcb->p_s.pc_epc = (memaddr) test; /* test function in p2test*/
+    initPcb->p_s.reg_t9 = (memaddr) test;
+    initPcb->p_s.status = IEPON | IMON | TEBITON;
     
     
+    //scheduler();
 
     return 0;
 }
