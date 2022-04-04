@@ -22,8 +22,10 @@ i.e. the current executing process.*/
 pcb_PTR currentProcess; 
 
 // inizializzare i vari semafori
-
 passupvector_t* PassUpVector;
+
+/* memory info to calculate ramtop*/
+devregarea_t* memInfo;
 
 extern void uTLB_RefillHandler();
 
@@ -36,8 +38,8 @@ int dSemaphores[MAXSEM];
 int main(){
 
     //unsigned int ramtop;
-    //devregarea_t* deviceInfo = (devregarea_t *) RAMBASEADDR;
-    //ramtop = (deviceInfo -> rambase) + (deviceInfo -> ramsize);
+    devregarea_t* ramInfo = (devregarea_t *) RAMBASEADDR;
+    unsigned int ramtop = (ramInfo -> rambase) + (ramInfo -> ramsize);
 
     PassUpVector = (passupvector_t*) PASSUPVECTOR;
     PassUpVector->tlb_refill_handler = (memaddr) uTLB_RefillHandler;
@@ -67,7 +69,7 @@ int main(){
     prCount++;
     
     STST(&initPcb);
-    //initPcb->p_s.s_sp = ramtop;
+    initPcb->p_s.reg_sp = ramtop;
     initPcb->p_s.pc_epc = (memaddr) test; /* test function in p2test*/
     initPcb->p_s.reg_t9 = (memaddr) test;
     initPcb->p_s.status = IEPON | IMON | TEBITON;
