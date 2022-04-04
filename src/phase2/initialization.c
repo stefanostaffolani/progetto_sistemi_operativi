@@ -29,7 +29,7 @@ devregarea_t* memInfo;
 
 extern void uTLB_RefillHandler();
 
-extern void exeptionHandler();   // TODO!!
+extern void exceptionHandler();   // TODO!!
 
 extern void test(); /* test function in p2test*/
 
@@ -44,7 +44,7 @@ int main(){
     PassUpVector = (passupvector_t*) PASSUPVECTOR;
     PassUpVector->tlb_refill_handler = (memaddr) uTLB_RefillHandler;
     PassUpVector->exception_stackPtr = (memaddr) KERNELSTACK;
-    PassUpVector->exception_handler = (memaddr) exeptionHandler;
+    PassUpVector->exception_handler = (memaddr) exceptionHandler;
     PassUpVector->tlb_refill_stackPtr = (memaddr) KERNELSTACK;
 
     initPcbs();

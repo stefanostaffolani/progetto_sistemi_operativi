@@ -1,0 +1,3 @@
+#include "exception.h"
+
+void exceptionHandler(){return;} // just for linking now...
