@@ -16,6 +16,7 @@ void scheduler(){
             HALT();     
         else if (prCount > 0 && sbCount > 0){   // aspetta...
             //TODO: set STATUS reg for enabling interrupts and disable PLT, maybe done
+            setTIMER(-1);    // il prof ha detto di metterlo!
             setSTATUS(IECON | IMON);   //interrupts on and PLT off
             WAIT();
         }else if (prCount > 0 && sbCount == 0){   // Deadlock
