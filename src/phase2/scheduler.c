@@ -5,12 +5,12 @@
 void scheduler(){
     if(!emptyProcQ(&high_priority_queue)){  // la coda ad alta priorita' non e' vuota
         currentProcess = removeProcQ(&high_priority_queue);
-        LDST(currentProcess->p_s);
+        LDST(&(currentProcess->p_s));
     }else if (!emptyProcQ(&low_priority_queue)){   // la coda ad alta priorita' e' vuota, quella a bassa priorita' no
         currentProcess =  removeProcQ(&low_priority_queue);
         //TODO:Load 5 milliseconds on the PLT. [Section 4.1.4-pops], maybe done
         setTIMER(TIMESLICE);
-        LDST(currentProcess->p_s);
+        LDST(&(currentProcess->p_s));
     } else{   // sono entrambe vuote
         if (prCount == 0) //spegni la macchina
             HALT();     
@@ -21,7 +21,7 @@ void scheduler(){
             WAIT();
         }else if (prCount > 0 && sbCount == 0){   // Deadlock
             PANIC();
-        } 
+        }
     }
 
 }
