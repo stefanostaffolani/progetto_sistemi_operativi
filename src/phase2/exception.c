@@ -4,7 +4,6 @@ static state_t* processor_state;   // stato del processore
 
 extern readyQueue;
 
-
 void exceptionHandler(){
     processor_state = (state_t*) BIOSDATAPAGE;
     const unsigned int CAUSE_CODE = CAUSE_GET_EXCODE(processor_state->cause);
@@ -19,10 +18,10 @@ void exceptionHandler(){
     case EXC_MOD:
     case EXC_TLBL:
     case EXC_TLBS:
-        TLBtrap_exception();
+        pass_up_or_die(PGFAULTEXCEPT);   // TLBexc...
         break;
     default:
-        program_trap_exception();    // altri casi... da scrivere meglio
+        pass_up_or_die(GENERALEXCEPT);   // program trap exc...
         break;
     }
 }
@@ -33,6 +32,13 @@ void syscall_exception(){
     unsigned int a1 = processor_state->reg_a1;
     unsigned int a2 = processor_state->reg_a2;
     unsigned int a3 = processor_state->reg_a3;
+    processor_state->pc_epc += WORD_SIZE;
+
+    if ((processor_state->status & USERPON) != ALLOFF){ //il processo non e' in kernel mode
+        setCAUSE(EXC_RI);
+        pass_up_or_die(GENERALEXCEPT);
+    } 
+
     switch (a0){
     case CREATEPROCESS:
         Create_Process_SYS1();
@@ -66,6 +72,18 @@ void syscall_exception(){
         break;
     default:
         break;
+    }
+}
+
+void pass_up_or_die(int except_type){    // check if similar to trap
+    if (currentProcess->p_supportStruct == NULL){
+        Terminate_Process_SYS2();
+    }else{
+        // Copy the saved exception state from the BIOS Data Page to the correct sup exceptState field of the Current Process
+        currentProcess->p_supportStruct->sup_exceptState[except_type] = *processor_state;  
+        // Perform a LDCXT using the fields from the correct sup exceptContext field of the Current Process.
+        context_t support = currentProcess->p_supportStruct->sup_exceptContext[except_type];
+        LDCXT(support.stackPtr, support.status, support.pc);
     }
 }
 
