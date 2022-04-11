@@ -1,4 +1,5 @@
 #include "exception.h"
+#include "interrupt.h"
 
 static state_t* processor_state;   // stato del processore
 
@@ -13,7 +14,7 @@ void exceptionHandler(){
         syscall_exception();
         break;
     case EXC_INT:
-        interrupt_exception();
+        interrupt_exception(CAUSE_CODE);
         break;
     case EXC_MOD:
     case EXC_TLBL:
@@ -85,9 +86,5 @@ void pass_up_or_die(int except_type){    // check if similar to trap
         context_t support = currentProcess->p_supportStruct->sup_exceptContext[except_type];
         LDCXT(support.stackPtr, support.status, support.pc);
     }
-}
-
-void interrupt_exception(){
-    return;   // TODO
 }
 
