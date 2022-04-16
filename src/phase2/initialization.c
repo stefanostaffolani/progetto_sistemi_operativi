@@ -1,8 +1,5 @@
 #include "scheduler.h"
 
-#define MAXPROC 20
-#define MAXSEM  MAXPROC
-
 /*integer indicating the number of started, but not
 yet terminated processes.*/
 int prCount;  // Process Count

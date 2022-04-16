@@ -3,6 +3,10 @@
 #include "../phase1/asl.h"
 #include "../phase1/pcb.h"
 
+
+#define MAXPROC 20
+#define MAXSEM  MAXPROC
+
 extern pcb_PTR currentProcess;
 extern int prCount;
 extern int sbCount;
