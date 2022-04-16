@@ -11,7 +11,8 @@ int sbCount; // soft-block Count
 /*
 Tail pointer to a queue of pcbs that are in the
 “ready” state.*/
-struct list_head readyQueue;
+struct list_head low_priority_queue;
+struct list_head high_priority_queue;
 
 /*
 Pointer to the pcb that is in the “running” state,
@@ -51,7 +52,9 @@ int main(){
         dSemaphores[i] = 0;
     prCount = 0;
     sbCount = 0;
-    mkEmptyProcQ(&readyQueue);
+    mkEmptyProcQ(&low_priority_queue);
+    mkEmptyProcQ(&high_priority_queue);
+
     currentProcess = NULL;
 
     LDIT(PSECOND);

@@ -1,7 +1,8 @@
 #include "syscall.h"
 
 extern state_t* processor_state;
-extern struct list_head readyQueue;
+extern struct list_head high_priority_queue;
+extern struct list_head low_priority_queue;
 extern int dSemaphores[MAXSEM];
 extern cpu_t insertTime; 
 
@@ -22,7 +23,10 @@ if(newProcess == NULL){     //new process cant be created, -1 in caller's v0 reg
     //take the pointer to a structure containing the additional Support Level fields from the a3 register
     newProcess->p_supportStruct = (support_t*) processor_state->reg_a3;
     //newly populated pcb is placed on the Ready Queue...
-    insertProcQ(&readyQueue, newProcess);
+    if(newProcess->p_prio == PROCESS_PRIO_LOW)
+        insertProcQ(&low_priority_queue, newProcess);
+    else
+        insertProcQ(&high_priority_queue, newProcess);
     //...and is made a child of the Current Process
     insertChild(currentProcess, newProcess);
     //the new process has yet to accumulate any cpu time
@@ -62,7 +66,10 @@ void terminateProgeny(pcb_t* removeMe){
 
 void terminateSingleProcess(pcb_t* removeMe){
     prCount--;
-    outProcQ(&readyQueue, removeMe);
+    if(removeMe->p_prio == PROCESS_PRIO_LOW)
+        outProcQ(&low_priority_queue, removeMe);
+    else
+        outProcQ(&high_priority_queue, removeMe);
     if(*(removeMe->p_semAdd) == 0){
         //capire se e' bloccato su un device semaphore o no, se non e' un device semaphore allora
         if (&(dSemaphores[0]) <= removeMe->p_semAdd && removeMe->p_semAdd <= &(dSemaphores[MAXSEM-1]))
@@ -94,7 +101,10 @@ void Verhogen_NSYS4() {
     pcb_PTR runningProcess = removeBlocked(semAddr);    //change blocked process to running
     if(runningProcess != NULL){ //if I actually have freed a process
         runningProcess->p_semAdd = NULL;    //that process has no semaphore
-        insertProcQ(&readyQueue, runningProcess); //and is placed in the Ready Queue
+        if(runningProcess->p_prio == PROCESS_PRIO_LOW)
+            insertProcQ(&low_priority_queue, runningProcess); //and is placed in the Ready Queue
+        else
+            insertProcQ(&high_priority_queue, runningProcess); //and is placed in the Ready Queue
     }
     LDST(processor_state); //control is returned to the Current Process
 }
@@ -142,3 +152,9 @@ void NSYS9_Get_Process_ID(){
     }
 }
 
+void NSYS10_Yield(){
+    if(currentProcess->p_prio == PROCESS_PRIO_LOW)
+        insertProcQ(&low_priority_queue, currentProcess);
+    else
+        insertProcQ(&high_priority_queue, currentProcess);     // chiedere per conferma
+}
