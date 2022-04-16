@@ -1,6 +1,6 @@
 #include "interrupt.h"
 
-extern pcb_PTR readyQueue;
+extern struct list_head readyQueue;
 extern pcb_PTR currentProcess;
 extern int sbCount;
 extern int dSemaphores[MAXSEM];
