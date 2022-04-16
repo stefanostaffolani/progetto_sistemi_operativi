@@ -5,7 +5,7 @@
 
 
 #define MAXPROC 20
-#define MAXSEM  MAXPROC
+#define MAXSEM  48
 
 extern pcb_PTR currentProcess;
 extern int prCount;
