@@ -4,6 +4,7 @@ extern struct list_head readyQueue;
 extern pcb_PTR currentProcess;
 extern int sbCount;
 extern int dSemaphores[MAXSEM];
+extern cpu_t start_time;
 
 cpu_t interval_timer;
 
@@ -40,6 +41,8 @@ void manageInterr(int line){
         processor state is 0x0FFF.F000.*/
         currentProcess->p_s = *((state_t*) BIOSDATAPAGE);
         
+        currentProcess->p_time = currentProcess->p_time + (getTIMER() - start_time);
+
         /* Place the Current Process on the Ready Queue */
         insertProcQ(&readyQueue, currentProcess);
 
@@ -57,6 +60,9 @@ void manageInterr(int line){
             if(unblockedP != NULL){
                 
                 unblockedP->p_semAdd = NULL;
+
+                currentProcess->p_time = currentProcess->p_time + (getTIMER() - start_time);
+
 
                 insertProcQ(&readyQueue, unblockedP);   // setting process status to ready
 
@@ -125,6 +131,8 @@ void manageNTInt(int line, int dev){
         unblockedProcess->p_semAdd = NULL;
         //unblockedProcess->p_time += (CURRENT_TOD - interrTime);
         
+        currentProcess->p_time = currentProcess->p_time + (getTIMER() - start_time);
+
         // decreasing number of sb processes
         sbCount--; 
 
