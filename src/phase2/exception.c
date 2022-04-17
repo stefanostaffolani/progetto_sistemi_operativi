@@ -54,22 +54,22 @@ void syscall_exception(){
         Verhogen_SYS4();
         break;
     case DOIO:
-        doio();
+        DO_IO_Device_NSYS5();
         break;
     case GETTIME:
-        get_time();
+        NSYS6_Get_CPU_Time();
         break;
     case CLOCKWAIT:
-        clock_wait();
+        NSYS7_Wait_For_Clock();
         break;
     case GETSUPPORTPTR:
-        get_support_ptr();
+        NSYS8_Get_SUPPORT_Data();
         break;
     case GETPROCESSID:
-        get_process_id();
+        NSYS9_Get_Process_ID();
         break;
     case YIELD:
-        yield();
+        NSYS10_Yield();
         break;
     default:
         break;

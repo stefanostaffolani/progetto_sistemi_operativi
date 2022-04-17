@@ -156,5 +156,6 @@ void NSYS10_Yield(){
     if(currentProcess->p_prio == PROCESS_PRIO_LOW)
         insertProcQ(&low_priority_queue, currentProcess);
     else
-        insertProcQ(&high_priority_queue, currentProcess);     // chiedere per conferma
+        insertProcQ(&high_priority_queue, currentProcess);    
+    scheduler();
 }
