@@ -116,10 +116,12 @@ void DO_IO_Device_NSYS5() {
     int cmdValue = processor_state->reg_a2;
     *cmdAddr = cmdValue;
     //I need the semaphore that the nucleus maintains for the I/O device indicated by the value in a1
-    
+
+    int semAdd = (*cmdAddr - 3) * 8 + cmdValue;
     //perform a P operation and always block the Current Process on the ASL
-    *(sem) = 0;
-    insertBlocked(sem, currentProcess);
+    dSemaphores[semAdd] = 0;
+    
+    insertBlocked(semAdd, currentProcess);
     sbCount++;
     currentProcess->p_s = *processor_state;
     //the scheduler is called

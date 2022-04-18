@@ -1,7 +1,7 @@
 #include "exception.h"
 #include "interrupt.h"
 
-static state_t* processor_state;   // stato del processore
+state_t* processor_state;   // stato del processore
 
 extern readyQueue;
 
