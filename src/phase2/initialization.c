@@ -35,9 +35,9 @@ int dSemaphores[MAXSEM];
 
 int main(){
 
-    //unsigned int ramtop;
-    devregarea_t* ramInfo = (devregarea_t *) RAMBASEADDR;
-    unsigned int ramtop = (ramInfo -> rambase) + (ramInfo -> ramsize);
+    klog_print("DIO PORCHISSIMO_1\n");
+    memaddr ramtop;
+    RAMTOP(ramtop);
 
     PassUpVector = (passupvector_t*) PASSUPVECTOR;
     PassUpVector->tlb_refill_handler = (memaddr) uTLB_RefillHandler;
@@ -47,6 +47,8 @@ int main(){
 
     initPcbs();
     initASL();
+
+    klog_print("DIO PORCHISSIMO_2\n");
 
     for(int i = 0; i<MAXSEM; i++)
         dSemaphores[i] = 0;
@@ -61,6 +63,8 @@ int main(){
 
     pcb_PTR initPcb = allocPcb();
 
+    klog_print("DIO PORCHISSIMO_3\n");
+
     initPcb->p_time = 0;
     initPcb->p_semAdd = NULL;
     initPcb->p_supportStruct = NULL;
@@ -68,13 +72,28 @@ int main(){
     mkEmptyProcQ(&initPcb->p_sib);
     prCount++;
     
+    klog_print("DIO PORCHISSIMO_4\n");
+
     STST(&initPcb);
+
+        klog_print("DIO PORCHISSIMO_4.5\n");
+
+
     initPcb->p_s.reg_sp = ramtop;
+
+            klog_print("DIO PORCHISSIMO_4.6\n");
+
+
     initPcb->p_s.pc_epc = (memaddr) test; /* test function in p2test*/
+    
+    klog_print("DIO PORCHISSIMO_4.7\n");
+
+
     initPcb->p_s.reg_t9 = (memaddr) test;
     initPcb->p_s.status = IEPON | IMON | TEBITON;
     
-    
+    klog_print("DIO PORCHISSIMO_5\n");
+
     scheduler();
 
     return 0;

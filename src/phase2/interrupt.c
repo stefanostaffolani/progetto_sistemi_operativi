@@ -5,7 +5,7 @@
 extern pcb_PTR currentProcess;
 extern int sbCount;
 extern int dSemaphores[MAXSEM];
-extern cpu_t start_time;
+// extern cpu_t insertTime;
 
 cpu_t interval_timer;
 
@@ -33,15 +33,15 @@ void manageInterr(int line){
     if(line == 1){  // plt timer interrupt
         
         /* Acknowledge the PLT interrupt by loading the timer with a new value.
-        [Section 4.1.4-pops]*/
-        setTIMER(TIME_CONVERT(__INT32_MAX__));
+        [Section 4.1.4-pops]*/ 
+        setTIMER(PSECOND);
         
         /*Save off the complete processor state at the time of the exception in a BIOS
         data structure on the BIOS Data Page. For Processor 0, the address of this
         processor state is 0x0FFF.F000.*/
         currentProcess->p_s = *((state_t*) BIOSDATAPAGE);
         
-        currentProcess->p_time = currentProcess->p_time + (getTIMER() - start_time);
+        currentProcess->p_time = currentProcess->p_time + (getTIMER() - currentProcess->p_time);
 
         /* Place the Current Process on the Ready Queue */
         if(currentProcess->p_prio == PROCESS_PRIO_LOW)
@@ -64,7 +64,7 @@ void manageInterr(int line){
                 
                 unblockedP->p_semAdd = NULL;
 
-                currentProcess->p_time = currentProcess->p_time + (getTIMER() - start_time);
+                currentProcess->p_time = currentProcess->p_time + (getTIMER() - currentProcess->p_time);
 
                 if(unblockedP->p_prio == PROCESS_PRIO_LOW)  // setting process status to ready
                     insertProcQ(&low_priority_queue, unblockedP);
@@ -136,7 +136,7 @@ void manageNTInt(int line, int dev){
         unblockedProcess->p_semAdd = NULL;
         //unblockedProcess->p_time += (CURRENT_TOD - interrTime);
         
-        currentProcess->p_time = currentProcess->p_time + (getTIMER() - start_time);
+        currentProcess->p_time = currentProcess->p_time + (getTIMER() - currentProcess->p_time);
 
         // decreasing number of sb processes
         sbCount--; 

@@ -4,7 +4,7 @@ extern state_t* processor_state;
 // extern struct list_head high_priority_queue;
 // extern struct list_head low_priority_queue;
 extern int dSemaphores[MAXSEM];
-extern cpu_t insertTime; 
+// extern cpu_t insertTime; 
 extern pcb_PTR currentProcess;
 extern int prCount;
 extern int sbCount;
@@ -62,7 +62,7 @@ void Terminate_Process_NSYS2(int pid) {
 void terminateProgeny(pcb_t* removeMe){
     if (removeMe == NULL) return;
     while (!(emptyChild(removeMe))){
-        removeProgeny(removeChild(removeMe));
+        terminateProgeny(removeChild(removeMe));
     }
     terminateSingleProcess(removeMe);
 }
@@ -132,15 +132,15 @@ void DO_IO_Device_NSYS5() {
 }
 
 void NSYS6_Get_CPU_Time(){
-    currentProcess->p_time = currentProcess->p_time + (getTIMER() - insertTime);
+    currentProcess->p_time = currentProcess->p_time + (getTIMER() - currentProcess->p_time);
     processor_state->reg_v0 = currentProcess->p_time;
-    STCK(insertTime);
+    STCK(currentProcess->p_time);
     LDST(processor_state);
 }
 
 void NSYS7_Wait_For_Clock(){
     sbCount++;
-    NSYS3_Passeren(&(dSemaphores[MAXSEM-1]));
+    Passeren_NSYS3(&(dSemaphores[MAXSEM-1]));
 }
 
 void NSYS8_Get_SUPPORT_Data(){

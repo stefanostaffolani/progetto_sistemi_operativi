@@ -3,13 +3,13 @@
 #include "umps3/umps/arch.h"
 #include "umps3/umps/types.h"
 
-void Create_Process_SYS1();
+void Create_Process_NSYS1();
 
-void Terminate_Process_SYS2();
+void Terminate_Process_NSYS2();
 
-void Passeren_SYS3();
+void Passeren_NSYS3();
 
-void Verhogen_SYS4();
+void Verhogen_NSYS4();
 
 void terminateProgeny(pcb_t*);
 

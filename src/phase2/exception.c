@@ -7,7 +7,7 @@ state_t* processor_state;   // stato del processore
 
 void exceptionHandler(){
     processor_state = (state_t*) BIOSDATAPAGE;
-    const unsigned int CAUSE_CODE = CAUSE_GET_EXCODE(processor_state->cause);
+    const unsigned int CAUSE_CODE = CAUSE_GET_EXCCODE(processor_state->cause);
 
     switch (CAUSE_CODE){
     case EXC_SYS:
@@ -42,16 +42,16 @@ void syscall_exception(){
 
     switch (a0){
     case CREATEPROCESS:
-        Create_Process_SYS1();
+        Create_Process_NSYS1();
         break;
     case TERMPROCESS:
-        Terminate_Process_SYS2();
+        Terminate_Process_NSYS2();
         break;
     case PASSEREN:
-        Passeren_SYS3();
+        Passeren_NSYS3();
         break;
     case VERHOGEN:
-        Verhogen_SYS4();
+        Verhogen_NSYS4();
         break;
     case DOIO:
         DO_IO_Device_NSYS5();
@@ -78,7 +78,7 @@ void syscall_exception(){
 
 void pass_up_or_die(int except_type){    // check if similar to trap
     if (currentProcess->p_supportStruct == NULL){
-        Terminate_Process_SYS2();
+        Terminate_Process_NSYS2();
     }else{
         // Copy the saved exception state from the BIOS Data Page to the correct sup exceptState field of the Current Process
         currentProcess->p_supportStruct->sup_exceptState[except_type] = *processor_state;  
