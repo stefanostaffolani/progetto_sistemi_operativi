@@ -161,3 +161,4 @@ void NSYS10_Yield(){
         insertProcQ(&high_priority_queue, currentProcess);    
     scheduler();
 }
+//commento per vedere se la push ha funzionato AGAGAG
