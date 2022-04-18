@@ -1,6 +1,7 @@
 #include "interrupt.h"
 
-extern struct list_head readyQueue;
+// extern struct list_head high_priority_queue;
+// extern struct list_head low_priority_queue;
 extern pcb_PTR currentProcess;
 extern int sbCount;
 extern int dSemaphores[MAXSEM];
@@ -11,7 +12,6 @@ cpu_t interval_timer;
 void interrupt_exception(unsigned int cause){
  
     // TODO: pulire questi commenti 
-    // TODO: CURRENT_TOD (?) implementing macro?
     // TODO: verificare le operazioni bit a bit
     /*takes
     an unsigned integer as its input parameter and populates it with the value of
@@ -44,7 +44,10 @@ void manageInterr(int line){
         currentProcess->p_time = currentProcess->p_time + (getTIMER() - start_time);
 
         /* Place the Current Process on the Ready Queue */
-        insertProcQ(&readyQueue, currentProcess);
+        if(currentProcess->p_prio == PROCESS_PRIO_LOW)
+            insertProcQ(&low_priority_queue, currentProcess);
+        else
+            insertProcQ(&high_priority_queue, currentProcess);
 
         scheduler();
     }
@@ -63,8 +66,10 @@ void manageInterr(int line){
 
                 currentProcess->p_time = currentProcess->p_time + (getTIMER() - start_time);
 
-
-                insertProcQ(&readyQueue, unblockedP);   // setting process status to ready
+                if(unblockedP->p_prio == PROCESS_PRIO_LOW)  // setting process status to ready
+                    insertProcQ(&low_priority_queue, unblockedP);
+                else
+                    insertProcQ(&high_priority_queue, unblockedP);
 
                 sbCount--;                              // decreasing number of sb processes
             }
@@ -137,7 +142,10 @@ void manageNTInt(int line, int dev){
         sbCount--; 
 
         // Insert the newly unblocked pcb on the Ready Queue
-        insertProcQ(&readyQueue, unblockedProcess);
+        if(unblockedProcess->p_prio == PROCESS_PRIO_LOW)  
+            insertProcQ(&low_priority_queue, unblockedProcess);
+        else
+            insertProcQ(&high_priority_queue, unblockedProcess);
     }
 
     if(currentProcess == NULL)          // if there was no process running

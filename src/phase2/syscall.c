@@ -1,10 +1,13 @@
 #include "syscall.h"
 
 extern state_t* processor_state;
-extern struct list_head high_priority_queue;
-extern struct list_head low_priority_queue;
+// extern struct list_head high_priority_queue;
+// extern struct list_head low_priority_queue;
 extern int dSemaphores[MAXSEM];
 extern cpu_t insertTime; 
+extern pcb_PTR currentProcess;
+extern int prCount;
+extern int sbCount;
 
 void Create_Process_NSYS1() {
 //alloco un PCB per il nuovo processo
@@ -161,4 +164,3 @@ void NSYS10_Yield(){
         insertProcQ(&high_priority_queue, currentProcess);    
     scheduler();
 }
-//commento per vedere se la push ha funzionato AGAGAG

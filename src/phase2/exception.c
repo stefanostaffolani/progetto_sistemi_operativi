@@ -1,9 +1,9 @@
 #include "exception.h"
-#include "interrupt.h"
 
 state_t* processor_state;   // stato del processore
 
-extern readyQueue;
+// extern struct list_head high_priority_queue;
+// extern struct list_head low_priority_queue;
 
 void exceptionHandler(){
     processor_state = (state_t*) BIOSDATAPAGE;

@@ -1,4 +1,4 @@
-#include "scheduler.h"
+#include "exception.h"
 
 /*integer indicating the number of started, but not
 yet terminated processes.*/
@@ -11,8 +11,8 @@ int sbCount; // soft-block Count
 /* 
 Tail pointer to a queue of pcbs that are in the
 “ready” state.*/
-struct list_head low_priority_queue;
-struct list_head high_priority_queue;
+// extern struct list_head low_priority_queue;
+// extern struct list_head high_priority_queue;
 
 /*
 Pointer to the pcb that is in the “running” state,
@@ -75,7 +75,7 @@ int main(){
     initPcb->p_s.status = IEPON | IMON | TEBITON;
     
     
-    //scheduler();
+    scheduler();
 
     return 0;
 }

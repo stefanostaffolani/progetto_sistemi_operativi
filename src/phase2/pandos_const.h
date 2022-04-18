@@ -171,4 +171,8 @@
 /* End of Mikeyg constants */
 
 
+/* useful const */
+#define MAXPROC 20
+#define MAXSEM  48
+
 #endif
