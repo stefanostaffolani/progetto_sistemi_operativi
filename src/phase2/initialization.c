@@ -65,6 +65,8 @@ int main(){
 
     klog_print("DIO PORCHISSIMO_3\n");
 
+    initPcb->p_prio = PROCESS_PRIO_LOW;
+    initPcb->p_pid = (memaddr) initPcb;
     initPcb->p_time = 0;
     initPcb->p_semAdd = NULL;
     initPcb->p_supportStruct = NULL;
@@ -74,25 +76,25 @@ int main(){
     
     klog_print("DIO PORCHISSIMO_4\n");
 
-    STST(&initPcb);
+    klog_print("DIO PORCHISSIMO_4.5\n");
 
-        klog_print("DIO PORCHISSIMO_4.5\n");
-
-
-    initPcb->p_s.reg_sp = ramtop;
-
-            klog_print("DIO PORCHISSIMO_4.6\n");
+    klog_print("DIO PORCHISSIMO_4.6\n");
 
 
     initPcb->p_s.pc_epc = (memaddr) test; /* test function in p2test*/
     
     klog_print("DIO PORCHISSIMO_4.7\n");
 
-
     initPcb->p_s.reg_t9 = (memaddr) test;
     initPcb->p_s.status = IEPON | IMON | TEBITON;
     
     klog_print("DIO PORCHISSIMO_5\n");
+
+    RAMTOP(initPcb->p_s.reg_sp);
+
+    insertProcQ(&low_priority_queue, initPcb);
+
+    klog_print("DIO PORCHISSIMO_5mila\n");
 
     scheduler();
 
