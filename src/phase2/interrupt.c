@@ -9,7 +9,7 @@ extern cpu_t start_time;
 cpu_t interval_timer;
 
 void interrupt_exception(unsigned int cause){
-
+ 
     // TODO: pulire questi commenti 
     // TODO: CURRENT_TOD (?) implementing macro?
     // TODO: verificare le operazioni bit a bit

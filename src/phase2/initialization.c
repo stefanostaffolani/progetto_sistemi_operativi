@@ -8,7 +8,7 @@ int prCount;  // Process Count
 the “blocked” state due to an I/O or timer request*/
 int sbCount; // soft-block Count
 
-/*
+/* 
 Tail pointer to a queue of pcbs that are in the
 “ready” state.*/
 struct list_head low_priority_queue;
