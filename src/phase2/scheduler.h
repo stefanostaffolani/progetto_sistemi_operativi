@@ -7,6 +7,8 @@
 #define MAXPROC 20
 #define MAXSEM  48
 
+#define size_t unsigned int
+
 extern pcb_PTR currentProcess;
 extern int prCount;
 extern int sbCount;
@@ -17,3 +19,6 @@ struct list_head low_priority_queue;
 // mkEmptyProcQ(&low_priority_queue);
 //------------------------------------------------------------------------------------------------------
 void scheduler();
+
+void memcpy(void *dest, const void *src, size_t n);
+
