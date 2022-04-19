@@ -86,33 +86,81 @@ void terminateSingleProcess(pcb_t* removeMe){
 }
 
 void Passeren_NSYS3() {
-    //physical address of the semaphore in a1
+    
+    klog_print("entro nella passeren...\n");
+
     int* semAddr = processor_state->reg_a1;
-    if (*semAddr == 1/*valore del semaforo non e' bloccante*/){
-        *semAddr = 0;
-        insertBlocked(semAddr, currentProcess); //Current Process is blocked on the ASL
-        scheduler();
-    } else {
-        LDST(processor_state); //control is returned to the Current Process
+
+    if(*semAddr == 0){
+        if(currentProcess->p_prio == PROCESS_PRIO_LOW)
+            insertProcQ(&low_priority_queue, currentProcess); //and is placed in the Ready Queue
+        else
+            insertProcQ(&high_priority_queue, currentProcess); //and is placed in the Ready Queue
+
+        //processor_state->pc_epc += WORD_SIZE;
+        LDST((state_t*) BIOSDATAPAGE); //control is returned to the Current Process
     }
+    else if(headBlocked(semAddr) == NULL) { 
+        *semAddr--;
+    }
+    else{
+        // pcb_PTR runningProcess = removeBlocked(semAddr);
+        // if(runningProcess->p_prio == PROCESS_PRIO_LOW)
+        //     insertProcQ(&low_priority_queue, runningProcess); //and is placed in the Ready Queue
+        // else
+        //     insertProcQ(&high_priority_queue, runningProcess); //and is placed in the Ready Queue
+
+        scheduler();
+
+    }
+
+
+    // //physical address of the semaphore in a1
+    // int* semAddr = processor_state->reg_a1;
+    // if (*semAddr == 1/*valore del semaforo non e' bloccante*/){
+    //     *semAddr = 0;
+    //     insertBlocked(semAddr, currentProcess); //Current Process is blocked on the ASL
+    //     scheduler();
+    // } else {
+    //     LDST(processor_state); //control is returned to the Current Process
+    // }
+    klog_print("esco nella passeren...\n");
+
 }
 
 void Verhogen_NSYS4() {
     //physical address of the semaphore in a1
+    klog_print("entro nella veroghen...\n");
     int* semAddr = processor_state->reg_a1;
-    *semAddr = 1;
-    pcb_PTR runningProcess = removeBlocked(semAddr);    //change blocked process to running
-    if(runningProcess != NULL){ //if I actually have freed a process
-        runningProcess->p_semAdd = NULL;    //that process has no semaphore
+
+    if(*semAddr == 1){
+
+        if(currentProcess->p_prio == PROCESS_PRIO_LOW)
+            insertProcQ(&low_priority_queue, currentProcess); //and is placed in the Ready Queue
+        else
+            insertProcQ(&high_priority_queue, currentProcess); //and is placed in the Ready Queue
+
+        //processor_state->pc_epc += WORD_SIZE;
+        LDST((state_t*) BIOSDATAPAGE); //control is returned to the Current Process
+        
+        scheduler();
+    }
+    else if(headBlocked(semAddr) == NULL) { 
+        *semAddr++;
+    }
+    else{
+        pcb_PTR runningProcess = removeBlocked(semAddr);
         if(runningProcess->p_prio == PROCESS_PRIO_LOW)
             insertProcQ(&low_priority_queue, runningProcess); //and is placed in the Ready Queue
         else
             insertProcQ(&high_priority_queue, runningProcess); //and is placed in the Ready Queue
     }
-    LDST(processor_state); //control is returned to the Current Process
+    klog_print("esco dalla veroghen...\n");
 }
 
 void DO_IO_Device_NSYS5() {
+
+    klog_print("INPUTOUTPROIUIJAPOJ\n");
     // read the interrupt line number in register a1
     int* cmdAddr = processor_state->reg_a1;
     //read the device number in register a2

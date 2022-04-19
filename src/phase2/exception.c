@@ -6,6 +6,7 @@ state_t* processor_state;   // stato del processore
 // extern struct list_head low_priority_queue;
 
 void exceptionHandler(){
+    klog_print("entro in exception handler..\n");
     processor_state = (state_t*) BIOSDATAPAGE;
     const unsigned int CAUSE_CODE = CAUSE_GET_EXCCODE(processor_state->cause);
 

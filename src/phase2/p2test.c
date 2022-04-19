@@ -141,10 +141,12 @@ void uTLB_RefillHandler() {
 /*                 p1 -- the root process                            */
 /*                                                                   */
 void test() {
-    klog_print("MA VACCA LA BOIA\n");
 
+    klog_print("entro nel test...\n");
 
     SYSCALL(VERHOGEN, (int)&sem_testsem, 0, 0); /* V(sem_testsem)   */
+
+    klog_print("supero syscall nel test...\n");
 
     print("p1 v(sem_testsem)\n");
 

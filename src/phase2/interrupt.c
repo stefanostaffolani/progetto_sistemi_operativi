@@ -11,6 +11,7 @@ cpu_t interval_timer;
 
 void interrupt_exception(unsigned int cause){
  
+    klog_print("OMMIODDIO entrro qua \n");
     // TODO: pulire questi commenti 
     // TODO: verificare le operazioni bit a bit
     /*takes
@@ -19,19 +20,23 @@ void interrupt_exception(unsigned int cause){
     STCK(interval_timer);   //save the interrupt starting time
 
     /*Which interrupt lines have pending interrupts is set in Cause.IP*/
-    // devo prendere i bit di cause da 2^9 a 2^16
-    int bit_check = 512; 
+    // devo prendere i bit di cause da 2^9 a 2^15
+
+    int bit_check = 1 << 10; 
     // for each line manage the interrupt
     for (int i = 1; i < 8; i++) {
         if (cause & bit_check)
             manageInterr(i);
-        bit_check *= 2;
+        bit_check = bit_check << 1;
     }
 }
 
 void manageInterr(int line){
+    klog_print("mannaggio un interrupt..\n");
+
     if(line == 1){  // plt timer interrupt
         
+        klog_print("si tratta di un plt timer\n");
         /* Acknowledge the PLT interrupt by loading the timer with a new value.
         [Section 4.1.4-pops]*/ 
         setTIMER(PSECOND);
@@ -52,6 +57,7 @@ void manageInterr(int line){
         scheduler();
     }
     else if(line == 2){  // reload interval timer
+        klog_print("si tratta di un reload interval timer\n");
 
         /*Acknowledge the interrupt by loading the Interval Timer with a new
         value: 100 milliseconds. [Section 4.1.3-pops]*/
@@ -81,13 +87,14 @@ void manageInterr(int line){
             LDST((state_t*) BIOSDATAPAGE);
     }
     else{   // Non-Timer Interrupts
+                klog_print("devicessss\n");
 
         devregarea_t *deviceRegs = RAMBASEADDR;     // TODO: problema di casting?
         unsigned int bit_check = 1;
         for(int i = 0; i < DEVPERINT; i++){         // DEVPERINT -> devices per interrupt = 8
             if(deviceRegs->interrupt_dev[line-3] & bit_check)
                 manageNTInt(line, i);
-            bit_check *= 2;
+            bit_check = bit_check << 1;
         }
     }
 }
