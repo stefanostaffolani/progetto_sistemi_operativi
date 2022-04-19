@@ -2,8 +2,7 @@
 
 void interrupt_exception(unsigned int cause){
  
-    klog_print("OMMIODDIO entrro qua \n");
-    // TODO: pulire questi commenti 
+    //klog_print("entro interrupt \n");
     // TODO: verificare le operazioni bit a bit
     /*takes
     an unsigned integer as its input parameter and populates it with the value of
@@ -15,7 +14,11 @@ void interrupt_exception(unsigned int cause){
 
     int bit_check = 1 << 10; 
     // for each line manage the interrupt
+    klog_print(cause);
+    
     for (int i = 1; i < 8; i++) {
+        klog_print("\n");
+        klog_print(bit_check);
         if (cause & bit_check)
             manageInterr(i);
         bit_check = bit_check << 1;
@@ -37,7 +40,9 @@ void manageInterr(int line){
         processor state is 0x0FFF.F000.*/
         currentProcess->p_s = *((state_t*) BIOSDATAPAGE);
         
-        currentProcess->p_time = currentProcess->p_time + (getTIMER() - currentProcess->p_time);
+        cpu_t endTime;
+        STCK(endTime);
+        currentProcess->p_time = endTime - startTime;
 
         /* Place the Current Process on the Ready Queue */
         if(currentProcess->p_prio == PROCESS_PRIO_LOW)
@@ -61,7 +66,9 @@ void manageInterr(int line){
                 
                 unblockedP->p_semAdd = NULL;
 
-                currentProcess->p_time = currentProcess->p_time + (getTIMER() - currentProcess->p_time);
+                cpu_t endTime;
+                STCK(endTime);
+                currentProcess->p_time = endTime - startTime;
 
                 if(unblockedP->p_prio == PROCESS_PRIO_LOW)  // setting process status to ready
                     insertProcQ(&low_priority_queue, unblockedP);
@@ -134,7 +141,9 @@ void manageNTInt(int line, int dev){
         unblockedProcess->p_semAdd = NULL;
         //unblockedProcess->p_time += (CURRENT_TOD - interrTime);
         
-        currentProcess->p_time = currentProcess->p_time + (getTIMER() - currentProcess->p_time);
+        cpu_t endTime;
+        STCK(endTime);
+        currentProcess->p_time = endTime - startTime;
 
         // decreasing number of sb processes
         sbCount--; 

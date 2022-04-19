@@ -1,7 +1,7 @@
 #include "exception.h"
 
 void exceptionHandler(){
-    klog_print("entro in exception handler..\n");
+    //klog_print("entro in exception handler..\n");
     processor_state = (state_t*) BIOSDATAPAGE;
     const unsigned int CAUSE_CODE = CAUSE_GET_EXCCODE(processor_state->cause);
     processor_state->pc_epc += WORD_SIZE;

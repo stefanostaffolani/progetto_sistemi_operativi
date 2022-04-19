@@ -7,7 +7,7 @@ void Create_Process_NSYS1() {
         processor_state->reg_v0 = -1;
     } else {
         //id del processo appena creato e' l'inidirizzo della struttura pcb_t corrispondente
-        newProcess->p_pid = (memaddr) newProcess; //e' giusto cosi'?
+        newProcess->p_pid = (memaddr) newProcess;
         //to say the new process could be created
         processor_state->reg_v0 = newProcess->p_pid;
         //take the initial state from the a1 register
@@ -165,34 +165,26 @@ void DO_IO_Device_NSYS5() {
     //I need the semaphore that the nucleus maintains for the I/O device indicated by the value in a1
     klog_print("sto per prendere il semaforo\n");
 
-    int intLine;
     int devNum;
 
-    devregarea_t *devReg = RAMBASEADDR;     // TODO: problema di casting?
+    devregarea_t *devReg = (devregarea_t*) RAMBASEADDR;     
     for(int i = 0; i < NUMDEV; i++){
         for(int j = 0; j < DEVPERINT; j++){
             if(i == NUMDEV-1){ // terminali 
-                termreg *dev = (termreg*) devReg->devreg[i][j];
-                if(dev->recv_command == devAddr || dev->transm_command == devAddr){
-                    intLine = i;
+                if(devReg->devreg[i][j].term.transm_command == cmdAddr || devReg->devreg[i][j].term.recv_command == cmdAddr)
                     devNum = j;
-                }
             }
             else{   // altri devices
-                dtpreg *dev = (dtpreg*) devReg->devreg[i][j];
-                if(dev->command == cmdAddr){
-                    intLine = i;
+                if(devReg->devreg[i][j].dtp.command == cmdAddr)
                     devNum = j;
-                }
             }
         }
     }
 
-    // aspe mo devo trovare semaddr usando la lista di semafori/un altra roba
-
-    int semAdd = (*cmdAddr - 3) * 8 + cmdValue;
-    //perform a P operation and always block the Current Process on the ASL
+    int semAdd = devNum;
     dSemaphores[semAdd] = 0;
+
+    //perform a P operation and always block the Current Process on the ASL
     klog_print("sto per fare insertBlocked\n");
     currentProcess->p_s = *((state_t *) BIOSDATAPAGE);
     cpu_t endTime;
