@@ -18,6 +18,7 @@
 #include "pandos_const.h"
 #include "pandos_types.h"
 #include <umps3/umps/libumps.h>
+#include "debug.h"
 
 typedef unsigned int devregtr;
 
@@ -140,6 +141,9 @@ void uTLB_RefillHandler() {
 /*                 p1 -- the root process                            */
 /*                                                                   */
 void test() {
+    klog_print("MA VACCA LA BOIA\n");
+
+
     SYSCALL(VERHOGEN, (int)&sem_testsem, 0, 0); /* V(sem_testsem)   */
 
     print("p1 v(sem_testsem)\n");

@@ -64,7 +64,7 @@ come lista vuota.
 
 void mkEmptyProcQ(struct list_head *head){
     INIT_LIST_HEAD(head);
-}
+} 
 
 /*
 Restituisce TRUE se la lista puntata da

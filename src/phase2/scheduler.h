@@ -14,8 +14,8 @@ extern pcb_PTR currentProcess;
 extern int prCount;
 extern int sbCount;
 //------- queste variabili vanno definite nell'inizializzazione e chiamate con extern------------------
-static struct list_head high_priority_queue;
-static struct list_head low_priority_queue;
+struct list_head high_priority_queue;
+struct list_head low_priority_queue;
 
 // mkEmptyProcQ(&high_priority_queue);
 // mkEmptyProcQ(&low_priority_queue);

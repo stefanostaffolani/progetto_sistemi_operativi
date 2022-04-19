@@ -35,7 +35,7 @@ int dSemaphores[MAXSEM];
 
 int main(){
 
-    klog_print("DIO PORCHISSIMO_1\n");
+    //klog_print("init_1\n");
     memaddr ramtop;
     RAMTOP(ramtop);
 
@@ -48,7 +48,7 @@ int main(){
     initPcbs();
     initASL();
 
-    klog_print("DIO PORCHISSIMO_2\n");
+    //klog_print("init_2\n");
 
     for(int i = 0; i<MAXSEM; i++)
         dSemaphores[i] = 0;
@@ -63,7 +63,7 @@ int main(){
 
     pcb_PTR initPcb = allocPcb();
 
-    klog_print("DIO PORCHISSIMO_3\n");
+    //klog_print("init_3\n");
 
     initPcb->p_prio = PROCESS_PRIO_LOW;
     initPcb->p_pid = (memaddr) initPcb;
@@ -74,27 +74,25 @@ int main(){
     mkEmptyProcQ(&initPcb->p_sib);
     prCount++;
     
-    klog_print("DIO PORCHISSIMO_4\n");
-
-    klog_print("DIO PORCHISSIMO_4.5\n");
-
-    klog_print("DIO PORCHISSIMO_4.6\n");
-
+  
+    //klog_print("init_4\n");
 
     initPcb->p_s.pc_epc = (memaddr) test; /* test function in p2test*/
     
-    klog_print("DIO PORCHISSIMO_4.7\n");
+    //klog_print("init_5\n");
 
     initPcb->p_s.reg_t9 = (memaddr) test;
     initPcb->p_s.status = IEPON | IMON | TEBITON;
     
-    klog_print("DIO PORCHISSIMO_5\n");
+    //klog_print("init_6\n");
 
     RAMTOP(initPcb->p_s.reg_sp);
-
+    
+   
     insertProcQ(&low_priority_queue, initPcb);
 
-    klog_print("DIO PORCHISSIMO_5mila\n");
+
+    klog_print("END_OF_INIT\n\n");
 
     scheduler();
 
