@@ -1,7 +1,7 @@
 #include "pandos_types.h"
 #include "pandos_const.h"
-#include "../phase1/asl.h"
-#include "../phase1/pcb.h"
+#include "asl.h"
+#include "pcb.h"
 #include "/usr/include/umps3/umps/cp0.h"
 #include "debug.h"
 
