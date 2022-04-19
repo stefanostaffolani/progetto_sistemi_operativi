@@ -22,5 +22,3 @@ static struct list_head low_priority_queue;
 //------------------------------------------------------------------------------------------------------
 void scheduler();
 
-void memcpy(void *dest, const void *src, size_t n);
-
