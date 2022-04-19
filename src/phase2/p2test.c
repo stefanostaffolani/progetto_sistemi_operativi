@@ -112,9 +112,12 @@ void print(char *msg) {
     devregtr  status;
 
     SYSCALL(PASSEREN, (int)&sem_term_mut, 0, 0); /* P(sem_term_mut) */
+    klog_print("fatta la prima syscall(P) di print()\n");
     while (*s != EOS) {
         devregtr value = PRINTCHR | (((devregtr)*s) << 8);
+        klog_print("sto per fare la DOIO\n");
         status         = SYSCALL(DOIO, (int)command, (int)value, 0);
+        klog_print("fatta la DOIO di print()\n");
         if ((status & TERMSTATMASK) != RECVD) {
             PANIC();
         }

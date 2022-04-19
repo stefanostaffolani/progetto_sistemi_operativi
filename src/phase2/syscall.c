@@ -97,8 +97,8 @@ void Passeren_NSYS3() {
         else
             insertProcQ(&high_priority_queue, currentProcess); //and is placed in the Ready Queue
 
-        //processor_state->pc_epc += WORD_SIZE;
-        LDST((state_t*) BIOSDATAPAGE); //control is returned to the Current Process
+        processor_state->pc_epc += WORD_SIZE;
+        LDST(processor_state); //control is returned to the Current Process
     }
     else if(headBlocked(semAddr) == NULL) { 
         *semAddr--;
@@ -140,8 +140,8 @@ void Verhogen_NSYS4() {
         else
             insertProcQ(&high_priority_queue, currentProcess); //and is placed in the Ready Queue
 
-        //processor_state->pc_epc += WORD_SIZE;
-        LDST((state_t*) BIOSDATAPAGE); //control is returned to the Current Process
+        processor_state->pc_epc += WORD_SIZE;
+        LDST(processor_state); //control is returned to the Current Process
         
         scheduler();
     }
@@ -160,23 +160,25 @@ void Verhogen_NSYS4() {
 
 void DO_IO_Device_NSYS5() {
 
-    klog_print("INPUTOUTPROIUIJAPOJ\n");
+    klog_print("entro nella DOIO\n");
     // read the interrupt line number in register a1
     int* cmdAddr = processor_state->reg_a1;
     //read the device number in register a2
     int cmdValue = processor_state->reg_a2;
     *cmdAddr = cmdValue;
     //I need the semaphore that the nucleus maintains for the I/O device indicated by the value in a1
-
+    klog_print("sto per prendere il semaforo\n");
     int semAdd = (*cmdAddr - 3) * 8 + cmdValue;
     //perform a P operation and always block the Current Process on the ASL
     dSemaphores[semAdd] = 0;
-    
+    klog_print("sto per fare insertBlocked\n");
     insertBlocked(semAdd, currentProcess);
     sbCount++;
     currentProcess->p_s = *processor_state;
+    klog_print("sto per chiamare lo scheduler\n");
     //the scheduler is called
     scheduler();
+    klog_print("finita la DOIO\n");
 }
 
 void NSYS6_Get_CPU_Time(){
