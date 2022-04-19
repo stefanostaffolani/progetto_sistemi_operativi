@@ -1,4 +1,4 @@
-#include "scheduler.h"
+#include "exception.h"
 
 /*integer indicating the number of started, but not
 yet terminated processes.*/
@@ -8,11 +8,11 @@ int prCount;  // Process Count
 the “blocked” state due to an I/O or timer request*/
 int sbCount; // soft-block Count
 
-/*
+/* 
 Tail pointer to a queue of pcbs that are in the
 “ready” state.*/
-struct list_head low_priority_queue;
-struct list_head high_priority_queue;
+// extern struct list_head low_priority_queue;
+// extern struct list_head high_priority_queue;
 
 /*
 Pointer to the pcb that is in the “running” state,
@@ -35,9 +35,9 @@ int dSemaphores[MAXSEM];
 
 int main(){
 
-    //unsigned int ramtop;
-    devregarea_t* ramInfo = (devregarea_t *) RAMBASEADDR;
-    unsigned int ramtop = (ramInfo -> rambase) + (ramInfo -> ramsize);
+    klog_print("DIO PORCHISSIMO_1\n");
+    memaddr ramtop;
+    RAMTOP(ramtop);
 
     PassUpVector = (passupvector_t*) PASSUPVECTOR;
     PassUpVector->tlb_refill_handler = (memaddr) uTLB_RefillHandler;
@@ -47,6 +47,8 @@ int main(){
 
     initPcbs();
     initASL();
+
+    klog_print("DIO PORCHISSIMO_2\n");
 
     for(int i = 0; i<MAXSEM; i++)
         dSemaphores[i] = 0;
@@ -61,6 +63,10 @@ int main(){
 
     pcb_PTR initPcb = allocPcb();
 
+    klog_print("DIO PORCHISSIMO_3\n");
+
+    initPcb->p_prio = PROCESS_PRIO_LOW;
+    initPcb->p_pid = (memaddr) initPcb;
     initPcb->p_time = 0;
     initPcb->p_semAdd = NULL;
     initPcb->p_supportStruct = NULL;
@@ -68,14 +74,29 @@ int main(){
     mkEmptyProcQ(&initPcb->p_sib);
     prCount++;
     
-    STST(&initPcb);
-    initPcb->p_s.reg_sp = ramtop;
+    klog_print("DIO PORCHISSIMO_4\n");
+
+    klog_print("DIO PORCHISSIMO_4.5\n");
+
+    klog_print("DIO PORCHISSIMO_4.6\n");
+
+
     initPcb->p_s.pc_epc = (memaddr) test; /* test function in p2test*/
+    
+    klog_print("DIO PORCHISSIMO_4.7\n");
+
     initPcb->p_s.reg_t9 = (memaddr) test;
     initPcb->p_s.status = IEPON | IMON | TEBITON;
     
-    
-    //scheduler();
+    klog_print("DIO PORCHISSIMO_5\n");
+
+    RAMTOP(initPcb->p_s.reg_sp);
+
+    insertProcQ(&low_priority_queue, initPcb);
+
+    klog_print("DIO PORCHISSIMO_5mila\n");
+
+    scheduler();
 
     return 0;
 }

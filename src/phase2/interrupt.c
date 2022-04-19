@@ -1,17 +1,17 @@
 #include "interrupt.h"
 
-extern struct list_head readyQueue;
+// extern struct list_head high_priority_queue;
+// extern struct list_head low_priority_queue;
 extern pcb_PTR currentProcess;
 extern int sbCount;
 extern int dSemaphores[MAXSEM];
-extern cpu_t start_time;
+// extern cpu_t insertTime;
 
 cpu_t interval_timer;
 
 void interrupt_exception(unsigned int cause){
-
+ 
     // TODO: pulire questi commenti 
-    // TODO: CURRENT_TOD (?) implementing macro?
     // TODO: verificare le operazioni bit a bit
     /*takes
     an unsigned integer as its input parameter and populates it with the value of
@@ -33,18 +33,21 @@ void manageInterr(int line){
     if(line == 1){  // plt timer interrupt
         
         /* Acknowledge the PLT interrupt by loading the timer with a new value.
-        [Section 4.1.4-pops]*/
-        setTIMER(TIME_CONVERT(__INT32_MAX__));
+        [Section 4.1.4-pops]*/ 
+        setTIMER(PSECOND);
         
         /*Save off the complete processor state at the time of the exception in a BIOS
         data structure on the BIOS Data Page. For Processor 0, the address of this
         processor state is 0x0FFF.F000.*/
         currentProcess->p_s = *((state_t*) BIOSDATAPAGE);
         
-        currentProcess->p_time = currentProcess->p_time + (getTIMER() - start_time);
+        currentProcess->p_time = currentProcess->p_time + (getTIMER() - currentProcess->p_time);
 
         /* Place the Current Process on the Ready Queue */
-        insertProcQ(&readyQueue, currentProcess);
+        if(currentProcess->p_prio == PROCESS_PRIO_LOW)
+            insertProcQ(&low_priority_queue, currentProcess);
+        else
+            insertProcQ(&high_priority_queue, currentProcess);
 
         scheduler();
     }
@@ -61,10 +64,12 @@ void manageInterr(int line){
                 
                 unblockedP->p_semAdd = NULL;
 
-                currentProcess->p_time = currentProcess->p_time + (getTIMER() - start_time);
+                currentProcess->p_time = currentProcess->p_time + (getTIMER() - currentProcess->p_time);
 
-
-                insertProcQ(&readyQueue, unblockedP);   // setting process status to ready
+                if(unblockedP->p_prio == PROCESS_PRIO_LOW)  // setting process status to ready
+                    insertProcQ(&low_priority_queue, unblockedP);
+                else
+                    insertProcQ(&high_priority_queue, unblockedP);
 
                 sbCount--;                              // decreasing number of sb processes
             }
@@ -131,13 +136,16 @@ void manageNTInt(int line, int dev){
         unblockedProcess->p_semAdd = NULL;
         //unblockedProcess->p_time += (CURRENT_TOD - interrTime);
         
-        currentProcess->p_time = currentProcess->p_time + (getTIMER() - start_time);
+        currentProcess->p_time = currentProcess->p_time + (getTIMER() - currentProcess->p_time);
 
         // decreasing number of sb processes
         sbCount--; 
 
         // Insert the newly unblocked pcb on the Ready Queue
-        insertProcQ(&readyQueue, unblockedProcess);
+        if(unblockedProcess->p_prio == PROCESS_PRIO_LOW)  
+            insertProcQ(&low_priority_queue, unblockedProcess);
+        else
+            insertProcQ(&high_priority_queue, unblockedProcess);
     }
 
     if(currentProcess == NULL)          // if there was no process running

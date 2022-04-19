@@ -59,7 +59,7 @@ typedef unsigned int devregtr;
 
 /* just to be clear */
 #define NOLEAVES 4 /* number of leaves of p8 process tree */
-#define MAXSEM   20
+//#define MAXSEM   20
 
 
 int sem_term_mut = 1,              /* for mutual exclusion on terminal */
