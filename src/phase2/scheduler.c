@@ -9,16 +9,6 @@ void memcpy(void *dest, const void *src, size_t n)
 }
 
 
-void memcpy(void *dest, const void *src, size_t n)
-{
-    for (size_t i = 0; i < n; i++)
-    {
-        ((char*)dest)[i] = ((char*)src)[i];
-    }
-}
-
-
-
 void scheduler(){
     if(!emptyProcQ(&high_priority_queue)){  // la coda ad alta priorita' non e' vuota
         currentProcess = removeProcQ(&high_priority_queue);
