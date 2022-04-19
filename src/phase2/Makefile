@@ -6,7 +6,7 @@ UDIR = /usr/include/umps3
 SDIR = /usr/share/umps3
 CFLAGS = -ffreestanding -ansi -mips1 -mabi=32 -std=gnu99 -mno-gpopt -EL -G 0 -mno-abicalls -fno-pic -mfp32 -I$(UDIR) -Wall -O0
 LFLAGS = -G 0 -nostdlib -T $(SDIR)/umpscore.ldscript -m elf32ltsmip
-OBJECTS = p2test.o asl.o pcb.o initialization.o syscall.o interrupt.o exception.o scheduler.o debug.o libumps.o crtso.o
+OBJECTS = p2test.o asl.o pcb.o initialization.o syscall.o interrupt.o exception.o scheduler.o debug.o globals.o libumps.o crtso.o
 
 all: kernel.core.umps
 
@@ -41,6 +41,9 @@ initialization.o: initialization.c
 
 debug.o: debug.c 
 	$(CC) $(CFLAGS) -c -o debug.o debug.c
+
+globals.o: globals.c
+	$(CC) $(CFLAGS) -c -o globals.o globals.c
 
 pcb.o: ../phase1/pcb.c
 	$(CC) $(CFLAGS) -c -o pcb.o ../phase1/pcb.c

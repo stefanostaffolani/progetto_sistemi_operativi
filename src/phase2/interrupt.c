@@ -1,14 +1,5 @@
 #include "interrupt.h"
 
-// extern struct list_head high_priority_queue;
-// extern struct list_head low_priority_queue;
-extern pcb_PTR currentProcess;
-extern int sbCount;
-extern int dSemaphores[MAXSEM];
-// extern cpu_t insertTime;
-
-cpu_t interval_timer;
-
 void interrupt_exception(unsigned int cause){
  
     klog_print("OMMIODDIO entrro qua \n");

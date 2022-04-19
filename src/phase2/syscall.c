@@ -1,46 +1,37 @@
 #include "syscall.h"
 
-extern state_t* processor_state;
-// extern struct list_head high_priority_queue;
-// extern struct list_head low_priority_queue;
-extern int dSemaphores[MAXSEM];
-// extern cpu_t insertTime; 
-extern pcb_PTR currentProcess;
-extern int prCount;
-extern int sbCount;
-
 void Create_Process_NSYS1() {
 //alloco un PCB per il nuovo processo
     pcb_PTR newProcess = allocPcb();
-if(newProcess == NULL){     //new process cant be created, -1 in caller's v0 register
-    processor_state->reg_v0 = -1;
-} else {
-    //id del processo appena creato e' l'inidirizzo della struttura pcb_t corrispondente
-    newProcess->p_pid = (memaddr) newProcess; //e' giusto cosi'?
-    //to say the new process could be created
-    processor_state->reg_v0 = newProcess->p_pid;
-    //take the initial state from the a1 register
-    newProcess->p_s = *((state_t*) processor_state->reg_a1);
-    //take the process priority from the a2 register
-    newProcess->p_prio = processor_state->reg_a2;
-    //take the pointer to a structure containing the additional Support Level fields from the a3 register
-    newProcess->p_supportStruct = (support_t*) processor_state->reg_a3;
-    //newly populated pcb is placed on the Ready Queue...
-    if(newProcess->p_prio == PROCESS_PRIO_LOW)
-        insertProcQ(&low_priority_queue, newProcess);
-    else
-        insertProcQ(&high_priority_queue, newProcess);
-    //...and is made a child of the Current Process
-    insertChild(currentProcess, newProcess);
-    //the new process has yet to accumulate any cpu time
-    newProcess->p_time = 0;
-    //this process is in the "ready" state
-    newProcess->p_semAdd = NULL;
-    //Process Count is incremented by one
-    prCount++;
-}
+    if(newProcess == NULL){     //new process cant be created, -1 in caller's v0 register
+        processor_state->reg_v0 = -1;
+    } else {
+        //id del processo appena creato e' l'inidirizzo della struttura pcb_t corrispondente
+        newProcess->p_pid = (memaddr) newProcess; //e' giusto cosi'?
+        //to say the new process could be created
+        processor_state->reg_v0 = newProcess->p_pid;
+        //take the initial state from the a1 register
+        newProcess->p_s = *((state_t*) processor_state->reg_a1);
+        //take the process priority from the a2 register
+        newProcess->p_prio = processor_state->reg_a2;
+        //take the pointer to a structure containing the additional Support Level fields from the a3 register
+        newProcess->p_supportStruct = (support_t*) processor_state->reg_a3;
+        //newly populated pcb is placed on the Ready Queue...
+        if(newProcess->p_prio == PROCESS_PRIO_LOW)
+            insertProcQ(&low_priority_queue, newProcess);
+        else
+            insertProcQ(&high_priority_queue, newProcess);
+        //...and is made a child of the Current Process
+        insertChild(currentProcess, newProcess);
+        //the new process has yet to accumulate any cpu time
+        newProcess->p_time = 0;
+        //this process is in the "ready" state
+        newProcess->p_semAdd = NULL;
+        //Process Count is incremented by one
+        prCount++;
+    }
     //control returned to the Current Process
-    LDST(processor_state);
+    //LDST(processor_state);
 }
 
 /* NSYS2 */
@@ -92,26 +83,27 @@ void Passeren_NSYS3() {
     int* semAddr = processor_state->reg_a1;
 
     if(*semAddr == 0){
-        if(currentProcess->p_prio == PROCESS_PRIO_LOW)
+        /*if(currentProcess->p_prio == PROCESS_PRIO_LOW)
             insertProcQ(&low_priority_queue, currentProcess); //and is placed in the Ready Queue
         else
             insertProcQ(&high_priority_queue, currentProcess); //and is placed in the Ready Queue
 
         processor_state->pc_epc += WORD_SIZE;
         LDST(processor_state); //control is returned to the Current Process
+        */
+       currentProcess->p_s = *((state_t *) BIOSDATAPAGE);
+       insertBlocked(semAddr, currentProcess);
+       scheduler();
     }
     else if(headBlocked(semAddr) == NULL) { 
         *semAddr--;
     }
     else{
-        // pcb_PTR runningProcess = removeBlocked(semAddr);
-        // if(runningProcess->p_prio == PROCESS_PRIO_LOW)
-        //     insertProcQ(&low_priority_queue, runningProcess); //and is placed in the Ready Queue
-        // else
-        //     insertProcQ(&high_priority_queue, runningProcess); //and is placed in the Ready Queue
-
-        scheduler();
-
+        pcb_PTR runningProcess = removeBlocked(semAddr);
+        if(runningProcess->p_prio == PROCESS_PRIO_LOW)
+            insertProcQ(&low_priority_queue, runningProcess); //and is placed in the Ready Queue
+        else
+            insertProcQ(&high_priority_queue, runningProcess); //and is placed in the Ready Queue
     }
 
 
@@ -134,15 +126,19 @@ void Verhogen_NSYS4() {
     int* semAddr = processor_state->reg_a1;
 
     if(*semAddr == 1){
-
-        if(currentProcess->p_prio == PROCESS_PRIO_LOW)
+        currentProcess->p_s = *((state_t *) BIOSDATAPAGE); 
+        cpu_t endTime;
+        STCK(endTime);
+        currentProcess->p_time = endTime - startTime;
+        insertBlocked(semAddr, currentProcess);
+       /*  if(currentProcess->p_prio == PROCESS_PRIO_LOW)
             insertProcQ(&low_priority_queue, currentProcess); //and is placed in the Ready Queue
         else
             insertProcQ(&high_priority_queue, currentProcess); //and is placed in the Ready Queue
 
         processor_state->pc_epc += WORD_SIZE;
-        LDST(processor_state); //control is returned to the Current Process
-        
+        LDST(processor_state ); //control is returned to the Current Process
+        */
         scheduler();
     }
     else if(headBlocked(semAddr) == NULL) { 
@@ -172,6 +168,10 @@ void DO_IO_Device_NSYS5() {
     //perform a P operation and always block the Current Process on the ASL
     dSemaphores[semAdd] = 0;
     klog_print("sto per fare insertBlocked\n");
+    currentProcess->p_s = *((state_t *) BIOSDATAPAGE);
+    cpu_t endTime;
+    STCK(endTime);
+    currentProcess->p_time = endTime - startTime;
     insertBlocked(semAdd, currentProcess);
     sbCount++;
     currentProcess->p_s = *processor_state;
@@ -182,10 +182,11 @@ void DO_IO_Device_NSYS5() {
 }
 
 void NSYS6_Get_CPU_Time(){
-    currentProcess->p_time = currentProcess->p_time + (getTIMER() - currentProcess->p_time);
+    cpu_t endTime;
+    STCK(endTime);
+    currentProcess->p_time = endTime - startTime;
     processor_state->reg_v0 = currentProcess->p_time;
-    STCK(currentProcess->p_time);
-    LDST(processor_state);
+    //LDST(processor_state);
 }
 
 void NSYS7_Wait_For_Clock(){
@@ -195,7 +196,7 @@ void NSYS7_Wait_For_Clock(){
 
 void NSYS8_Get_SUPPORT_Data(){
     processor_state->reg_v0 = (unsigned int) currentProcess->p_supportStruct;
-    LDST(processor_state);
+    //LDST(processor_state);
 }
 
 void NSYS9_Get_Process_ID(){
@@ -212,5 +213,9 @@ void NSYS10_Yield(){
         insertProcQ(&low_priority_queue, currentProcess);
     else
         insertProcQ(&high_priority_queue, currentProcess);    
+    currentProcess->p_s = *((state_t *) BIOSDATAPAGE);
+    cpu_t endTime;
+    STCK(endTime);
+    currentProcess->p_time = endTime = startTime;
     scheduler();
 }
