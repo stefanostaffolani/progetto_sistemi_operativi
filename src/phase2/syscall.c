@@ -164,6 +164,32 @@ void DO_IO_Device_NSYS5() {
     *cmdAddr = cmdValue;
     //I need the semaphore that the nucleus maintains for the I/O device indicated by the value in a1
     klog_print("sto per prendere il semaforo\n");
+
+    int intLine;
+    int devNum;
+
+    devregarea_t *devReg = RAMBASEADDR;     // TODO: problema di casting?
+    for(int i = 0; i < NUMDEV; i++){
+        for(int j = 0; j < DEVPERINT; j++){
+            if(i == NUMDEV-1){ // terminali 
+                termreg *dev = (termreg*) devReg->devreg[i][j];
+                if(dev->recv_command == devAddr || dev->transm_command == devAddr){
+                    intLine = i;
+                    devNum = j;
+                }
+            }
+            else{   // altri devices
+                dtpreg *dev = (dtpreg*) devReg->devreg[i][j];
+                if(dev->command == cmdAddr){
+                    intLine = i;
+                    devNum = j;
+                }
+            }
+        }
+    }
+
+    // aspe mo devo trovare semaddr usando la lista di semafori/un altra roba
+
     int semAdd = (*cmdAddr - 3) * 8 + cmdValue;
     //perform a P operation and always block the Current Process on the ASL
     dSemaphores[semAdd] = 0;
