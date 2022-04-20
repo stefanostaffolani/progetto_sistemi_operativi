@@ -1,8 +1,10 @@
 #include "interrupt.h"
 
+int bruno = 1;
+
 void interrupt_exception(unsigned int cause){
  
-    //klog_print("entro interrupt \n");
+    // klog_print("entro interrupt \n");
     // TODO: verificare le operazioni bit a bit
     /*takes
     an unsigned integer as its input parameter and populates it with the value of
@@ -12,17 +14,28 @@ void interrupt_exception(unsigned int cause){
     /*Which interrupt lines have pending interrupts is set in Cause.IP*/
     // devo prendere i bit di cause da 2^9 a 2^15
 
-    int bit_check = 1 << 10; 
+    unsigned int bit_check = 1 << 9; 
     // for each line manage the interrupt
-    klog_print(cause);
     
-    for (int i = 1; i < 8; i++) {
+    //klog_print_hex(cause);
+
+    if(bruno < 2){
         klog_print("\n");
-        klog_print(bit_check);
+        klog_print_hex(cause);
+        bruno++;
+    }
+
+    //klog_print("prima del for\n");
+
+    for (int i = 1; i < 8; i++) {
+       // klog_print("sono nel for\n");
         if (cause & bit_check)
             manageInterr(i);
         bit_check = bit_check << 1;
     }
+    //klog_print("\n");
+    //klog_print("dopo il for\n");
+
 }
 
 void manageInterr(int line){
