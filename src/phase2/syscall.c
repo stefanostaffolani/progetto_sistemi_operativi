@@ -171,18 +171,20 @@ void DO_IO_Device_NSYS5() {
     for(int i = 0; i < NUMDEV; i++){
         for(int j = 0; j < DEVPERINT; j++){
             if(i == NUMDEV-1){ // terminali 
-                if(devReg->devreg[i][j].term.transm_command == cmdAddr || devReg->devreg[i][j].term.recv_command == cmdAddr)
+                if(devReg->devreg[i][j].term.transm_command == *cmdAddr || devReg->devreg[i][j].term.recv_command == *cmdAddr)
                     devNum = j;
             }
             else{   // altri devices
-                if(devReg->devreg[i][j].dtp.command == cmdAddr)
+                if(devReg->devreg[i][j].dtp.command == *cmdAddr)
                     devNum = j;
             }
         }
     }
 
-    int semAdd = devNum;
-    dSemaphores[semAdd] = 0;
+    int *semAdd = &devNum;
+    processor_state->reg_a1 = semAdd;
+    SYSCALL(PASSEREN, semAdd, 0, 0);
+    // TODO: la faccio sta p operation?
 
     //perform a P operation and always block the Current Process on the ASL
     klog_print("sto per fare insertBlocked\n");
@@ -208,7 +210,7 @@ void NSYS6_Get_CPU_Time(){
 }
 
 void NSYS7_Wait_For_Clock(){
-    sbCount++;
+    sbCount++;      // TODO: non ha senso sta cosa
     Passeren_NSYS3(&(dSemaphores[MAXSEM-1]));
 }
 
