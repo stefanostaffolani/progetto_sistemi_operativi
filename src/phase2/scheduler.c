@@ -5,12 +5,16 @@ void scheduler(){
     if(!emptyProcQ(&high_priority_queue)){  // la coda ad alta priorita' non e' vuota
         currentProcess = removeProcQ(&high_priority_queue);
         STCK(startTime);
+        klog_print("primo caso scheduler\n");
+        //processor_state->pc_epc += WORDLEN;
         LDST(&(currentProcess->p_s));
     }else if (!emptyProcQ(&low_priority_queue)){   // la coda ad alta priorita' e' vuota, quella a bassa priorita' no
         currentProcess =  removeProcQ(&low_priority_queue);
         //TODO:Load 5 milliseconds on the PLT. [Section 4.1.4-pops], maybe done
         setTIMER(TIMESLICE);
         STCK(startTime);
+        klog_print("secondo caso scheduler\n");
+        //processor_state->pc_epc += WORDLEN;
         LDST(&(currentProcess->p_s));
     } else{   // sono entrambe vuote
 
@@ -27,5 +31,4 @@ void scheduler(){
         }
     }
     klog_print("esco dallo scheduler...\n");
-
 }

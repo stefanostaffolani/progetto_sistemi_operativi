@@ -47,10 +47,10 @@ void syscall_exception(){
         Terminate_Process_NSYS2();
         break;
     case PASSEREN:
-        Passeren_NSYS3();
+        Passeren_NSYS3(a1);
         break;
     case VERHOGEN:
-        Verhogen_NSYS4();
+        Verhogen_NSYS4(a1);
         break;
     case DOIO:
         DO_IO_Device_NSYS5();

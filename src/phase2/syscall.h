@@ -7,9 +7,9 @@ void Create_Process_NSYS1();
 
 void Terminate_Process_NSYS2();
 
-void Passeren_NSYS3();
+void Passeren_NSYS3(int *);
 
-void Verhogen_NSYS4();
+void Verhogen_NSYS4(int *);
 
 void terminateProgeny(pcb_t*);
 

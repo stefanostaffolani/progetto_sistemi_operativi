@@ -94,8 +94,12 @@ void manageInterr(int line){
 
         if(currentProcess == NULL)
             scheduler();
-        else 
-            LDST((state_t*) BIOSDATAPAGE);
+        else{
+            klog_print("sto per fare il LDST\n");
+            processor_state->pc_epc += WORDLEN;
+            LDST(processor_state);
+            klog_print("ho fatto la LDST\n");
+        }
     }
     else{   // Non-Timer Interrupts
                 klog_print("devicessss\n");
@@ -115,7 +119,7 @@ void manageNTInt(int line, int dev){
     /* Calculate the address for this device’s device register. [Section 5.1-pops] */
     /* one can compute the starting address of the device’s device register:
     devAddrBase = 0x1000.0054 + ((IntlineNo - 3) * 0x80) + (DevNo * 0x10) */
-    devreg_t* devAddrBase = (devreg_t*) 0x10000054 + ((line - 3) * 0x80) + (dev * 0x10);
+    devreg_t* devAddrBase = (devreg_t*) (0x10000054 + ((line - 3) * 0x80) + (dev * 0x10));
 
     int receive_interr = 0;     
     unsigned int status;

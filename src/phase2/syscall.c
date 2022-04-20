@@ -76,11 +76,11 @@ void terminateSingleProcess(pcb_t* removeMe){
     freePcb(removeMe);
 }
 
-void Passeren_NSYS3() {
+void Passeren_NSYS3(int *semAddr) {
     
     klog_print("entro nella passeren...\n");
 
-    int* semAddr = processor_state->reg_a1;
+    //int* semAddr = processor_state->reg_a1;
 
     if(*semAddr == 0){
         /*if(currentProcess->p_prio == PROCESS_PRIO_LOW)
@@ -120,10 +120,10 @@ void Passeren_NSYS3() {
 
 }
 
-void Verhogen_NSYS4() {
+void Verhogen_NSYS4(int *semAddr) {
     //physical address of the semaphore in a1
     klog_print("entro nella veroghen...\n");
-    int* semAddr = processor_state->reg_a1;
+    //int* semAddr = processor_state->reg_a1;
 
     if(*semAddr == 1){
         currentProcess->p_s = *((state_t *) BIOSDATAPAGE); 
@@ -182,8 +182,8 @@ void DO_IO_Device_NSYS5() {
     }
 
     int *semAdd = &devNum;
-    processor_state->reg_a1 = semAdd;
-    SYSCALL(PASSEREN, semAdd, 0, 0);
+    //processor_state->reg_a1 = semAdd;
+    //Passeren_NSYS3(semAdd);
     // TODO: la faccio sta p operation?
 
     //perform a P operation and always block the Current Process on the ASL
