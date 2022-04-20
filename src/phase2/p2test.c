@@ -118,7 +118,9 @@ void print(char *msg) {
         klog_print("sto per fare la DOIO\n");
         status         = SYSCALL(DOIO, (int)command, (int)value, 0);
         klog_print("fatta la DOIO di print()\n");
+        klog_print_hex(status);
         if ((status & TERMSTATMASK) != RECVD) {
+            klog_print("sto per andare in panic(print)\n");
             PANIC();
         }
         s++;

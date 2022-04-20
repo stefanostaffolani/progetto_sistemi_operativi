@@ -174,8 +174,9 @@ void manageNTInt(int line, int dev){
 
     if(currentProcess == NULL)          // if there was no process running
         scheduler();
-    else
-        LDST((state_t*) BIOSDATAPAGE);  // load old processor state
+    else{
+        LDST(&(currentProcess->p_s));  // load old processor state
+    }
 }
 
 
