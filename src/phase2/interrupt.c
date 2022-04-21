@@ -104,7 +104,7 @@ void manageInterr(int line){
     else{   // Non-Timer Interrupts
         klog_print("devicessss\n");
 
-        devregarea_t *deviceRegs = (devregarea_t*) RAMBASEADDR;     // TODO: problema di casting?
+        devregarea_t *deviceRegs = (devregarea_t*) RAMBASEADDR;   
         unsigned int bit_check = 1;
         for(int i = 0; i < DEVPERINT; i++){         // DEVPERINT -> devices per interrupt = 8
             if(deviceRegs->interrupt_dev[line-3] & bit_check)
@@ -128,14 +128,14 @@ void manageNTInt(int line, int dev){
         klog_print("it's a terminal\n");
         termreg_t* terminalRegister = (termreg_t*) devAddrBase;
 
-        if(terminalRegister->recv_status != READY){     // terminal READ
+        if(terminalRegister->recv_status != READY){             // terminal READ
             status->status = terminalRegister->recv_status;     // Save off the status code from the device’s device register
-            terminalRegister->recv_command = ACK;       // Acknowledge the interrupt    
+            terminalRegister->recv_command = ACK;               // Acknowledge the interrupt    
             receive_interr = 1;
         }                       
-        else{                                           // terminal WRITE
+        else{                                                   // terminal WRITE
             status->status = terminalRegister->recv_status;     // Save off the status code from the device’s device register
-            terminalRegister->transm_command = ACK;     // Acknowledge the interrupt 
+            terminalRegister->transm_command = ACK;             // Acknowledge the interrupt 
         }
 
         if (receive_interr == 1)
@@ -143,7 +143,7 @@ void manageNTInt(int line, int dev){
 
     }
     else {
-        devAddrBase->dtp.command = ACK;             // Acknowledge the interrupt 
+        devAddrBase->dtp.command = ACK;                     // Acknowledge the interrupt 
         status->status = devAddrBase->dtp.status;           // Save off the status code from the device’s device register
     }
 

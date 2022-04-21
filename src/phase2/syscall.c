@@ -135,11 +135,17 @@ void Verhogen_NSYS4(int *semAddr) {
     //int* semAddr = processor_state->reg_a1;
 
     if(*semAddr == 1){
+        
+        processor_state->pc_epc += WORD_SIZE;
+        
         currentProcess->p_s = *((state_t *) BIOSDATAPAGE); 
+
         cpu_t endTime;
         STCK(endTime);
         currentProcess->p_time = endTime - startTime;
+
         insertBlocked(semAddr, currentProcess);
+
        /*  if(currentProcess->p_prio == PROCESS_PRIO_LOW)
             insertProcQ(&low_priority_queue, currentProcess); //and is placed in the Ready Queue
         else
