@@ -167,7 +167,6 @@ void DO_IO_Device_NSYS5() {
 
     int devNum;
     int intLine;
-    int receive_terminal = 0;
 
     devregarea_t *devReg = (devregarea_t*) RAMBASEADDR;     
     for(int i = 0; i < NUMDEV; i++){
@@ -180,7 +179,6 @@ void DO_IO_Device_NSYS5() {
                 else if(devReg->devreg[i][j].term.recv_command == *cmdAddr){
                     intLine = i;
                     devNum = j + DEVPERINT; // to map the dev in dSemaphore
-                    receive_terminal = 1;
                 }
             }
             else{   // altri devices
