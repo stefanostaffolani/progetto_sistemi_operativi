@@ -75,7 +75,9 @@ void manageInterr(int line){
 
         /* Unblock ALL pcbs blocked on the Pseudo-clock semaphore */
         while(headBlocked(&(dSemaphores[MAXSEM - 1])) != NULL){
+            klog_print("\ncosa accade?\n");
             pcb_PTR unblockedP = removeBlocked(&dSemaphores[MAXSEM - 1]);
+            sbCount--;                              // decreasing number of sb processes
             if(unblockedP != NULL){
                 
                 unblockedP->p_semAdd = NULL;
@@ -88,8 +90,6 @@ void manageInterr(int line){
                     insertProcQ(&low_priority_queue, unblockedP);
                 else
                     insertProcQ(&high_priority_queue, unblockedP);
-
-                sbCount--;                              // decreasing number of sb processes
             }
         }
 
