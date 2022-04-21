@@ -123,7 +123,7 @@ void manageNTInt(int line, int dev){
     devreg_t* devAddrBase = (devreg_t*) (0x10000054 + ((line - 3) * 0x80) + (dev * 0x10));
 
     int receive_interr = 0;     
-    unsigned int status;
+    state_t* status;
 
     if (line == 7){ // if it's a terminal sub device
         klog_print("it's a terminal\n");
@@ -163,8 +163,8 @@ void manageNTInt(int line, int dev){
     klog_print("decrementato sbCount\n");
     if(unblockedProcess !=  NULL){
         // Place the stored off status code in the newly unblocked pcb’s v0 register.
-        unblockedProcess->p_s.reg_v0 = status;
-        
+        unblockedProcess->p_s.reg_v0 = status->status;
+
         unblockedProcess->p_semAdd = NULL;
         //unblockedProcess->p_time += (CURRENT_TOD - interrTime);
         
@@ -185,7 +185,7 @@ void manageNTInt(int line, int dev){
     if(currentProcess == NULL)          // if there was no process running
         scheduler();
     else{
-        LDST(&(currentProcess->p_s));  // load old processor state
+        LDST(processor_state);  // load old processor state
     }
 }
 
