@@ -161,6 +161,8 @@ void DO_IO_Device_NSYS5() {
     int* cmdAddr = processor_state->reg_a1;
     //read the device number in register a2
     int cmdValue = processor_state->reg_a2;
+    klog_print("cmdValue is: ");
+    klog_print_hex(cmdValue);
     *cmdAddr = cmdValue;
     //I need the semaphore that the nucleus maintains for the I/O device indicated by the value in a1
     klog_print("sto per prendere il semaforo\n");

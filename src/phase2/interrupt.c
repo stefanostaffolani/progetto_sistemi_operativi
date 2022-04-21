@@ -150,12 +150,17 @@ void manageNTInt(int line, int dev){
 
     // Semaphore associated with this (sub)device
     int sem_loc = dev + (DEVPERINT * (line-3));
-    int semAdd = dSemaphores[sem_loc];
+    int *semAdd = &dSemaphores[sem_loc];
 
     // Perform a V operation on the Nucleus
-    dSemaphores[semAdd]++;
-    pcb_PTR unblockedProcess = removeBlocked(&dSemaphores[semAdd]);
-
+    //dSemaphores[semAdd]++;
+    pcb_PTR unblockedProcess = removeBlocked(semAdd);
+    if (unblockedProcess == NULL){     //TODO: rimuovere in seguito
+        klog_print("unblocked is NULL\n");
+    }
+    // decreasing number of sb processes
+    sbCount--;
+    klog_print("decrementato sbCount\n");
     if(unblockedProcess !=  NULL){
         // Place the stored off status code in the newly unblocked pcb’s v0 register.
         unblockedProcess->p_s.reg_v0 = status;
@@ -168,7 +173,7 @@ void manageNTInt(int line, int dev){
         currentProcess->p_time = endTime - startTime;
 
         // decreasing number of sb processes
-        sbCount--; 
+        //sbCount--; 
 
         // Insert the newly unblocked pcb on the Ready Queue
         if(unblockedProcess->p_prio == PROCESS_PRIO_LOW)  
