@@ -16,6 +16,7 @@ void scheduler(){
         klog_print("secondo caso scheduler\n");
         //processor_state->pc_epc += WORDLEN;
         LDST(&(currentProcess->p_s));
+        klog_print("bruce!\n");
     } else{   // sono entrambe vuote
 
         if (prCount == 0) //spegni la macchina

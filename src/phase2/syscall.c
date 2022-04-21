@@ -225,8 +225,25 @@ void NSYS6_Get_CPU_Time(){
 }
 
 void NSYS7_Wait_For_Clock(){
-    sbCount++;      // TODO: non ha senso sta cosa
-    Passeren_NSYS3(&(dSemaphores[MAXSEM-1]));
+    klog_print("entro nella NSYS7...\n");
+
+    //sbCount++;      // TODO: non ha senso sta cosa
+    //Passeren_NSYS3(&(dSemaphores[MAXSEM-1]));
+
+    currentProcess->p_s = *((state_t *) BIOSDATAPAGE);
+
+    cpu_t endTime;
+    STCK(endTime);
+    currentProcess->p_time = endTime - startTime;
+    
+    insertBlocked(&dSemaphores[MAXSEM-1], currentProcess);
+    sbCount++; 
+    
+    currentProcess->p_s = *processor_state;
+    
+    klog_print("sto per chiamare lo scheduler\n");
+    scheduler();
+
 }
 
 void NSYS8_Get_SUPPORT_Data(){

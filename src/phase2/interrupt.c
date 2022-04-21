@@ -78,23 +78,22 @@ void manageInterr(int line){
             klog_print("\ncosa accade?\n");
             pcb_PTR unblockedP = removeBlocked(&dSemaphores[MAXSEM - 1]);
             sbCount--;                              // decreasing number of sb processes
-            if(unblockedP != NULL){
-                
-                unblockedP->p_semAdd = NULL;
+            
+            cpu_t endTime;
+            STCK(endTime);
+            unblockedP->p_time = endTime - startTime;
 
-                cpu_t endTime;
-                STCK(endTime);
-                currentProcess->p_time = endTime - startTime;
-
-                if(unblockedP->p_prio == PROCESS_PRIO_LOW)  // setting process status to ready
-                    insertProcQ(&low_priority_queue, unblockedP);
-                else
-                    insertProcQ(&high_priority_queue, unblockedP);
-            }
+            if(unblockedP->p_prio == PROCESS_PRIO_LOW)  // setting process status to ready
+                insertProcQ(&low_priority_queue, unblockedP);
+            else
+                insertProcQ(&high_priority_queue, unblockedP);
+            
         }
 
-        if(currentProcess == NULL)
-            scheduler();
+        dSemaphores[MAXSEM-1] = 0;
+
+        // if(currentProcess == NULL)
+        //     scheduler();
         // else{
         //     klog_print("sto per fare il LDST\n");
         //     processor_state->pc_epc += WORDLEN;

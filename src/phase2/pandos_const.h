@@ -173,7 +173,7 @@
 
 /* useful const */
 #define MAXPROC 20
-#define MAXSEM  48
+#define MAXSEM  49
 #define NUMDEV  5
 
 #endif

@@ -32,7 +32,7 @@ void syscall_exception(){
     unsigned int a1 = processor_state->reg_a1;
     unsigned int a2 = processor_state->reg_a2;
     unsigned int a3 = processor_state->reg_a3;
-    processor_state->pc_epc += WORD_SIZE;
+    // processor_state->pc_epc += WORD_SIZE;
 
     if ((processor_state->status & USERPON) != ALLOFF){ //il processo non e' in kernel mode
         setCAUSE(EXC_RI);
