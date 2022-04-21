@@ -4,7 +4,7 @@ void exceptionHandler(){
     //klog_print("entro in exception handler..\n");
     processor_state = (state_t*) BIOSDATAPAGE;
     const unsigned int CAUSE_CODE = CAUSE_GET_EXCCODE(processor_state->cause);
-    processor_state->pc_epc += WORD_SIZE;
+    // processor_state->pc_epc += WORD_SIZE;
     unsigned int cause = processor_state->cause & CAUSE_IP_MASK;
     // klog_print_hex(CAUSE_CODE);
     switch (CAUSE_CODE){
@@ -23,7 +23,6 @@ void exceptionHandler(){
         pass_up_or_die(GENERALEXCEPT);   // program trap exc...
         break;
     }
-    LDST(processor_state);
 }
 
 

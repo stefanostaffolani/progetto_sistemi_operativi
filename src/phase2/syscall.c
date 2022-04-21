@@ -31,7 +31,7 @@ void Create_Process_NSYS1() {
         prCount++;
     }
     //control returned to the Current Process
-    //LDST(processor_state);
+    LDST(*((state_t *) BIOSDATAPAGE));
 }
 
 /* NSYS2 */
@@ -124,6 +124,7 @@ void Passeren_NSYS3(int *semAddr) {
     // } else {
     //     LDST(processor_state); //control is returned to the Current Process
     // }
+    
     klog_print("esco nella passeren...\n");
 
 }
@@ -234,7 +235,7 @@ void NSYS6_Get_CPU_Time(){
     STCK(endTime);
     currentProcess->p_time = endTime - startTime;
     processor_state->reg_v0 = currentProcess->p_time;
-    //LDST(processor_state);
+    LDST(*((state_t *) BIOSDATAPAGE));
 }
 
 void NSYS7_Wait_For_Clock(){
@@ -264,7 +265,7 @@ void NSYS7_Wait_For_Clock(){
 
 void NSYS8_Get_SUPPORT_Data(){
     processor_state->reg_v0 = (unsigned int) currentProcess->p_supportStruct;
-    //LDST(processor_state);
+    LDST(*((state_t *) BIOSDATAPAGE));
 }
 
 void NSYS9_Get_Process_ID(){
@@ -274,6 +275,7 @@ void NSYS9_Get_Process_ID(){
     else{
         processor_state->reg_v0 = currentProcess->p_parent->p_pid;
     }
+    LDST(*((state_t *) BIOSDATAPAGE));
 }
 
 void NSYS10_Yield(){
