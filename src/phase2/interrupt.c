@@ -148,7 +148,6 @@ void manageNTInt(int line, int dev){
         status = devAddrBase->dtp.status;           // Save off the status code from the device’s device register
     }
 
-    klog_print("pinzo il semaforo\n");
     // Semaphore associated with this (sub)device
     int semAdd = dSemaphores[dev];
 
