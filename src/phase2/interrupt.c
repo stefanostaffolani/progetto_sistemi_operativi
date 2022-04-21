@@ -156,9 +156,7 @@ void manageNTInt(int line, int dev){
     if (unblockedProcess == NULL){     //TODO: rimuovere in seguito
         klog_print("unblocked is NULL\n");
     }
-    // decreasing number of sb processes
-    sbCount--;
-    klog_print("decrementato sbCount\n");
+    
     if(unblockedProcess !=  NULL){
         // Place the stored off status code in the newly unblocked pcb’s v0 register.
         unblockedProcess->p_s.reg_v0 = status->status;
@@ -171,15 +169,14 @@ void manageNTInt(int line, int dev){
         currentProcess->p_time = endTime - startTime;
 
         // decreasing number of sb processes
-        //sbCount--; 
-
+        sbCount--;
+        klog_print("decrementato sbCount\n");
+        
         // Insert the newly unblocked pcb on the Ready Queue
         if(unblockedProcess->p_prio == PROCESS_PRIO_LOW)  
             insertProcQ(&low_priority_queue, unblockedProcess);
         else
             insertProcQ(&high_priority_queue, unblockedProcess);
-
-        klog_print("faccio cose?\n");
     }
 
     if(currentProcess == NULL)          // if there was no process running
