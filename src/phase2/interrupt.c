@@ -164,7 +164,7 @@ void manageNTInt(int line, int dev){
     if(unblockedProcess !=  NULL){
         // Place the stored off status code in the newly unblocked pcb’s v0 register.
         unblockedProcess->p_s.reg_v0 = status;
-
+        
         unblockedProcess->p_semAdd = NULL;
         //unblockedProcess->p_time += (CURRENT_TOD - interrTime);
         

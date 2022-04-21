@@ -209,8 +209,8 @@ void DO_IO_Device_NSYS5() {
     currentProcess->p_s = *processor_state;
     klog_print("sto per chiamare lo scheduler\n");
     
-    state_t *status = cmdAddr - WORDLEN;    // TODO: controllare questo valore poiche' manda in panic la print()
-    processor_state->reg_v0 = status->status;
+    //state_t *status = cmdAddr - WORDLEN;    // TODO: controllare questo valore poiche' manda in panic la print()
+    //processor_state->reg_v0 = status->status;
     //the scheduler is called
     scheduler();
     klog_print("finita la DOIO\n");
