@@ -166,21 +166,32 @@ void DO_IO_Device_NSYS5() {
     klog_print("sto per prendere il semaforo\n");
 
     int devNum;
+    int intLine;
+    int receive_terminal = 0;
 
     devregarea_t *devReg = (devregarea_t*) RAMBASEADDR;     
     for(int i = 0; i < NUMDEV; i++){
         for(int j = 0; j < DEVPERINT; j++){
             if(i == NUMDEV-1){ // terminali 
-                if(devReg->devreg[i][j].term.transm_command == *cmdAddr || devReg->devreg[i][j].term.recv_command == *cmdAddr)
+                if(devReg->devreg[i][j].term.transm_command == *cmdAddr){
+                    intLine = i;
                     devNum = j;
+                }
+                else if(devReg->devreg[i][j].term.recv_command == *cmdAddr){
+                    intLine = i;
+                    devNum = j + DEVPERINT; // to map the dev in dSemaphore
+                    receive_terminal = 1;
+                }
             }
             else{   // altri devices
-                if(devReg->devreg[i][j].dtp.command == *cmdAddr)
+                if(devReg->devreg[i][j].dtp.command == *cmdAddr){
+                    intLine = i;
                     devNum = j;
+                }
             }
         }
     }
-    
+
     int semAdd = dSemaphores[devNum];
     //processor_state->reg_a1 = semAdd;
     //Passeren_NSYS3(semAdd);

@@ -78,7 +78,7 @@ void manageInterr(int line){
             pcb_PTR unblockedP = removeBlocked(&dSemaphores[MAXSEM - 1]);
             if(unblockedP != NULL){
                 
-                unblockedP->p_semAdd = 0;
+                unblockedP->p_semAdd = NULL;
 
                 cpu_t endTime;
                 STCK(endTime);
