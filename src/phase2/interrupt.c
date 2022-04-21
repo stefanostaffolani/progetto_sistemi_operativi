@@ -19,11 +19,11 @@ void interrupt_exception(unsigned int cause){
     
     //klog_print_hex(cause);
 
-    if(bruno < 2){
-        klog_print("\n");
-        klog_print_hex(cause);
-        bruno++;
-    }
+    // if(bruno < 2){
+    //     klog_print("\n");
+    //     klog_print_hex(cause);
+    //     bruno++;
+    // }
 
     //klog_print("prima del for\n");
 
@@ -41,7 +41,7 @@ void interrupt_exception(unsigned int cause){
 void manageInterr(int line){
     klog_print("mannaggio un interrupt..\n");
 
-    if(line == 1){  // plt timer interrupt
+    if(line == 1){  // plt processor local timer interrupt
         
         klog_print("si tratta di un plt timer\n");
         /* Acknowledge the PLT interrupt by loading the timer with a new value.
@@ -62,6 +62,7 @@ void manageInterr(int line){
             insertProcQ(&low_priority_queue, currentProcess);
         else
             insertProcQ(&high_priority_queue, currentProcess);
+        
 
         scheduler();
     }
@@ -77,7 +78,7 @@ void manageInterr(int line){
             pcb_PTR unblockedP = removeBlocked(&dSemaphores[MAXSEM - 1]);
             if(unblockedP != NULL){
                 
-                unblockedP->p_semAdd = NULL;
+                unblockedP->p_semAdd = 0;
 
                 cpu_t endTime;
                 STCK(endTime);
@@ -102,9 +103,9 @@ void manageInterr(int line){
         }
     }
     else{   // Non-Timer Interrupts
-                klog_print("devicessss\n");
+        klog_print("devicessss\n");
 
-        devregarea_t *deviceRegs = RAMBASEADDR;     // TODO: problema di casting?
+        devregarea_t *deviceRegs = (devregarea_t*) RAMBASEADDR;     // TODO: problema di casting?
         unsigned int bit_check = 1;
         for(int i = 0; i < DEVPERINT; i++){         // DEVPERINT -> devices per interrupt = 8
             if(deviceRegs->interrupt_dev[line-3] & bit_check)
@@ -125,6 +126,7 @@ void manageNTInt(int line, int dev){
     unsigned int status;
 
     if (line == 7){ // if it's a terminal sub device
+        klog_print("it's a terminal\n");
         termreg_t* terminalRegister = (termreg_t*) devAddrBase;
 
         if(terminalRegister->recv_status != READY){     // terminal READ
@@ -136,7 +138,9 @@ void manageNTInt(int line, int dev){
             status = terminalRegister->recv_status;     // Save off the status code from the device’s device register
             terminalRegister->transm_command = ACK;     // Acknowledge the interrupt 
         }
-        dev = 2*dev + receive_interr;
+
+        if (receive_interr == 1)
+            dev += 8;
 
     }
     else {
@@ -144,8 +148,9 @@ void manageNTInt(int line, int dev){
         status = devAddrBase->dtp.status;           // Save off the status code from the device’s device register
     }
 
+    klog_print("pinzo il semaforo\n");
     // Semaphore associated with this (sub)device
-    int semAdd = (line - 3) * 8 + dev;
+    int semAdd = dSemaphores[dev];
 
     // Perform a V operation on the Nucleus
     dSemaphores[semAdd]++;

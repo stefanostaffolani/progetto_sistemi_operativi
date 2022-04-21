@@ -181,7 +181,7 @@ void DO_IO_Device_NSYS5() {
         }
     }
     
-    int *semAdd = &devNum;
+    int semAdd = dSemaphores[devNum];
     //processor_state->reg_a1 = semAdd;
     //Passeren_NSYS3(semAdd);
     // TODO: la faccio sta p operation?
