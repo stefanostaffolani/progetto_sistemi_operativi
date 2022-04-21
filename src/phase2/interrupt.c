@@ -94,12 +94,11 @@ void manageInterr(int line){
 
         if(currentProcess == NULL)
             scheduler();
-        // else{
-        //     klog_print("sto per fare il LDST\n");
-        //     processor_state->pc_epc += WORDLEN;
-        //     LDST(processor_state);
-        //     klog_print("ho fatto la LDST\n");
-        // }
+        else{
+            klog_print("sto per fare il LDST\n");
+            LDST(*((state_t *) BIOSDATAPAGE));  // load old processor state
+            klog_print("ho fatto la LDST\n");
+        }
     }
     else{   // Non-Timer Interrupts
         klog_print("devicessss\n");
@@ -179,15 +178,16 @@ void manageNTInt(int line, int dev){
             insertProcQ(&low_priority_queue, unblockedProcess);
         else
             insertProcQ(&high_priority_queue, unblockedProcess);
+
+        klog_print("faccio cose?\n");
     }
 
     if(currentProcess == NULL)          // if there was no process running
         scheduler();
-    // else{
-    //     processor_state = (state_t*) BIOSDATAPAGE;
-    //     processor_state->pc_epc += WORD_SIZE;
-    //     LDST(processor_state);  // load old processor state
-    // }
+    else{
+        // processor_state->pc_epc += WORD_SIZE;
+        LDST(*((state_t *) BIOSDATAPAGE));  // load old processor state
+    }
 }
 
 
