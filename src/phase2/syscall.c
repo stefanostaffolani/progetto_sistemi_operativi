@@ -177,8 +177,8 @@ void DO_IO_Device_NSYS5() {
                     devNum = j;
                 }
                 else if(devReg->devreg[i][j].term.recv_command == *cmdAddr){
-                    intLine = i;
-                    devNum = j + DEVPERINT; // to map the dev in dSemaphore
+                    intLine = i;    
+                    devNum = j + DEVPERINT;     // to map the dev in dSemaphore
                 }
             }
             else{   // altri devices
@@ -190,7 +190,8 @@ void DO_IO_Device_NSYS5() {
         }
     }
 
-    int semAdd = dSemaphores[devNum];
+    int sem_loc = devNum + (DEVPERINT * intLine);
+    int *semAdd = &dSemaphores[sem_loc];
     //processor_state->reg_a1 = semAdd;
     //Passeren_NSYS3(semAdd);
     // TODO: la faccio sta p operation?

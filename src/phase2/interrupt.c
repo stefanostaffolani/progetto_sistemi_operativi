@@ -149,7 +149,8 @@ void manageNTInt(int line, int dev){
     }
 
     // Semaphore associated with this (sub)device
-    int semAdd = dSemaphores[dev];
+    int sem_loc = dev + (DEVPERINT * (line-3));
+    int semAdd = dSemaphores[sem_loc];
 
     // Perform a V operation on the Nucleus
     dSemaphores[semAdd]++;
