@@ -92,8 +92,8 @@ void manageInterr(int line){
 
         dSemaphores[MAXSEM-1] = 0;
 
-        // if(currentProcess == NULL)
-        //     scheduler();
+        if(currentProcess == NULL)
+            scheduler();
         // else{
         //     klog_print("sto per fare il LDST\n");
         //     processor_state->pc_epc += WORDLEN;

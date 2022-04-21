@@ -91,9 +91,17 @@ void Passeren_NSYS3(int *semAddr) {
         processor_state->pc_epc += WORD_SIZE;
         LDST(processor_state); //control is returned to the Current Process
         */
-       currentProcess->p_s = *((state_t *) BIOSDATAPAGE);
-       insertBlocked(semAddr, currentProcess);
-       scheduler();
+
+        processor_state->pc_epc += WORD_SIZE;
+
+        currentProcess->p_s = *((state_t *) BIOSDATAPAGE);
+
+        cpu_t endTime;
+        STCK(endTime);
+        currentProcess->p_time = endTime - startTime;
+
+        insertBlocked(semAddr, currentProcess);
+        scheduler();
     }
     else if(headBlocked(semAddr) == NULL) { 
         *semAddr--;
@@ -200,13 +208,18 @@ void DO_IO_Device_NSYS5() {
 
     //perform a P operation and always block the Current Process on the ASL
     klog_print("sto per fare insertBlocked\n");
+
+    processor_state->pc_epc += WORD_SIZE;
+
     currentProcess->p_s = *((state_t *) BIOSDATAPAGE);
+
     cpu_t endTime;
     STCK(endTime);
     currentProcess->p_time = endTime - startTime;
+    
     insertBlocked(semAdd, currentProcess);
     sbCount++;
-    currentProcess->p_s = *processor_state;
+    // currentProcess->p_s = *processor_state;
     klog_print("sto per chiamare lo scheduler\n");
     
     //state_t *status = cmdAddr - WORDLEN;    // TODO: controllare questo valore poiche' manda in panic la print()
@@ -226,6 +239,9 @@ void NSYS6_Get_CPU_Time(){
 
 void NSYS7_Wait_For_Clock(){
     klog_print("entro nella NSYS7...\n");
+
+    
+    processor_state->pc_epc += WORD_SIZE;
 
     //sbCount++;      // TODO: non ha senso sta cosa
     //Passeren_NSYS3(&(dSemaphores[MAXSEM-1]));
