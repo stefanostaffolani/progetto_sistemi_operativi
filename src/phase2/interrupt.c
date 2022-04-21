@@ -95,12 +95,12 @@ void manageInterr(int line){
 
         if(currentProcess == NULL)
             scheduler();
-        else{
-            klog_print("sto per fare il LDST\n");
-            processor_state->pc_epc += WORDLEN;
-            LDST(processor_state);
-            klog_print("ho fatto la LDST\n");
-        }
+        // else{
+        //     klog_print("sto per fare il LDST\n");
+        //     processor_state->pc_epc += WORDLEN;
+        //     LDST(processor_state);
+        //     klog_print("ho fatto la LDST\n");
+        // }
     }
     else{   // Non-Timer Interrupts
         klog_print("devicessss\n");
@@ -130,12 +130,12 @@ void manageNTInt(int line, int dev){
         termreg_t* terminalRegister = (termreg_t*) devAddrBase;
 
         if(terminalRegister->recv_status != READY){     // terminal READ
-            status = terminalRegister->recv_status;     // Save off the status code from the device’s device register
+            status->status = terminalRegister->recv_status;     // Save off the status code from the device’s device register
             terminalRegister->recv_command = ACK;       // Acknowledge the interrupt    
             receive_interr = 1;
         }                       
         else{                                           // terminal WRITE
-            status = terminalRegister->recv_status;     // Save off the status code from the device’s device register
+            status->status = terminalRegister->recv_status;     // Save off the status code from the device’s device register
             terminalRegister->transm_command = ACK;     // Acknowledge the interrupt 
         }
 
@@ -145,7 +145,7 @@ void manageNTInt(int line, int dev){
     }
     else {
         devAddrBase->dtp.command = ACK;             // Acknowledge the interrupt 
-        status = devAddrBase->dtp.status;           // Save off the status code from the device’s device register
+        status->status = devAddrBase->dtp.status;           // Save off the status code from the device’s device register
     }
 
     // Semaphore associated with this (sub)device
@@ -184,9 +184,11 @@ void manageNTInt(int line, int dev){
 
     if(currentProcess == NULL)          // if there was no process running
         scheduler();
-    else{
-        LDST(processor_state);  // load old processor state
-    }
+    // else{
+    //     processor_state = (state_t*) BIOSDATAPAGE;
+    //     processor_state->pc_epc += WORD_SIZE;
+    //     LDST(processor_state);  // load old processor state
+    // }
 }
 
 
