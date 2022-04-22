@@ -46,7 +46,7 @@ void manageInterr(int line){
         klog_print("si tratta di un plt timer\n");
         /* Acknowledge the PLT interrupt by loading the timer with a new value.
         [Section 4.1.4-pops]*/ 
-        setTIMER(PSECOND);
+        setTIMER(-1);
         
         /*Save off the complete processor state at the time of the exception in a BIOS
         data structure on the BIOS Data Page. For Processor 0, the address of this
@@ -123,19 +123,19 @@ void manageNTInt(int line, int dev){
     devreg_t* devAddrBase = (devreg_t*) (0x10000054 + ((line - 3) * 0x80) + (dev * 0x10));
 
     int receive_interr = 0;     
-    state_t* status;
+    unsigned int status;
 
     if (line == 7){ // if it's a terminal sub device
         klog_print("it's a terminal\n");
         termreg_t* terminalRegister = (termreg_t*) devAddrBase;
-
-        if(terminalRegister->recv_status != READY){             // terminal READ
-            status->status = terminalRegister->recv_status;     // Save off the status code from the device’s device register
+        
+        if(terminalRegister->recv_status != READY && terminalRegister->transm_status != BUSY){             // terminal READ
+            status = terminalRegister->recv_status;     // Save off the status code from the device’s device register
             terminalRegister->recv_command = ACK;               // Acknowledge the interrupt    
             receive_interr = 1;
         }                       
         else{                                                   // terminal WRITE
-            status->status = terminalRegister->recv_status;     // Save off the status code from the device’s device register
+            status = terminalRegister->recv_status;     // Save off the status code from the device’s device register
             terminalRegister->transm_command = ACK;             // Acknowledge the interrupt 
         }
 
@@ -145,7 +145,7 @@ void manageNTInt(int line, int dev){
     } 
     else {
         devAddrBase->dtp.command = ACK;                     // Acknowledge the interrupt 
-        status->status = devAddrBase->dtp.status;           // Save off the status code from the device’s device register
+        status = devAddrBase->dtp.status;           // Save off the status code from the device’s device register
     }
 
     // Semaphore associated with this (sub)device
@@ -171,7 +171,13 @@ void manageNTInt(int line, int dev){
     else{
         sbCount--;
         pcb_PTR unblockedProcess = removeBlocked(semAdd);
-        unblockedProcess->p_s.reg_v0 = status->status;
+        unblockedProcess->p_s.reg_v0 = status;
+
+        cpu_t endTime;
+        STCK(endTime);
+        unblockedProcess->p_time = endTime - startTime;
+
+
         if(unblockedProcess->p_prio == PROCESS_PRIO_LOW)
             insertProcQ(&low_priority_queue, unblockedProcess); //and is placed in the Ready Queue
         else
