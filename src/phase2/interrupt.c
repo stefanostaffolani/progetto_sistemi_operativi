@@ -163,12 +163,13 @@ void manageNTInt(int line, int dev){
     // Perform a V operation on the Nucleus
     //dSemaphores[semAdd]++;
     
-    pcb_PTR unblockedProcess = removeBlocked(semAdd);
+    //pcb_PTR unblockedProcess = removeBlocked(semAdd);
     if(headBlocked(semAdd) == NULL) { 
         *semAdd++;
         LDST(processor_state);
     }
     else{
+        sbCount--;
         pcb_PTR unblockedProcess = removeBlocked(semAdd);
         unblockedProcess->p_s.reg_v0 = status->status;
         if(unblockedProcess->p_prio == PROCESS_PRIO_LOW)
@@ -203,8 +204,11 @@ void manageNTInt(int line, int dev){
             insertProcQ(&high_priority_queue, unblockedProcess);
     }
     */
-    if(currentProcess == NULL)          // if there was no process running
+
+    if(currentProcess == NULL){          // if there was no process running
+        klog_print("current proc is NULL");
         scheduler();
+    }
     else{
         // processor_state->pc_epc += WORD_SIZE;
         //processor_state->pc_epc += WORDLEN;

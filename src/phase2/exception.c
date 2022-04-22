@@ -47,7 +47,7 @@ void syscall_exception(){
         Create_Process_NSYS1();
         break;
     case TERMPROCESS:
-        Terminate_Process_NSYS2();
+        Terminate_Process_NSYS2(a1);
         break;
     case PASSEREN:
         Passeren_NSYS3(a1);
