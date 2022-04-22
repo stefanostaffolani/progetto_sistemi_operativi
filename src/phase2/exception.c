@@ -6,6 +6,7 @@ void exceptionHandler(){
     const unsigned int CAUSE_CODE = CAUSE_GET_EXCCODE(processor_state->cause);
     // processor_state->pc_epc += WORD_SIZE;
     unsigned int cause = processor_state->cause & CAUSE_IP_MASK;
+    breakpoint();
     // klog_print_hex(CAUSE_CODE);
     switch (CAUSE_CODE){
     case EXC_SYS:
@@ -17,9 +18,14 @@ void exceptionHandler(){
     case EXC_MOD:
     case EXC_TLBL:
     case EXC_TLBS:
+        klog_print("TLBS PASSUP\n");
+        breakpoint();
         pass_up_or_die(PGFAULTEXCEPT);   // TLBexc...
         break;
     default:
+        klog_print("def1 PASSUP\n");
+        klog_print_hex(CAUSE_CODE);
+        breakpoint();
         pass_up_or_die(GENERALEXCEPT);   // program trap exc...
         break;
     }
@@ -33,8 +39,10 @@ void syscall_exception(state_t *exception_state){
     //unsigned int a3 = processor_state->reg_a3;
     // processor_state->pc_epc += WORD_SIZE;
     
-    if ((exception_state->status & USERPON) != ALLOFF){ //il processo non e' in kernel mode
+    if ((exception_state->status & STATUS_KUp) != ALLOFF){ //il processo non e' in kernel mode
+        klog_print("CAUSE PASSUP\n");
         setCAUSE(EXC_RI);
+        breakpoint();
         pass_up_or_die(GENERALEXCEPT);
     } 
 
@@ -73,11 +81,15 @@ void syscall_exception(state_t *exception_state){
         NSYS10_Yield(exception_state);
         break;
     default:
+        klog_print("def2 PASSUP\n");
+        breakpoint();
         pass_up_or_die(GENERALEXCEPT);
     }
 }
 
 void pass_up_or_die(int except_type){    // check if similar to trap
+    klog_print("pass UP\n");
+    breakpoint();
     if (currentProcess->p_supportStruct == NULL){
         Terminate_Process_NSYS2(currentProcess->p_pid, processor_state);
     }else{

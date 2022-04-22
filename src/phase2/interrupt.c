@@ -14,13 +14,13 @@ void interrupt_exception(unsigned int cause){
     /*Which interrupt lines have pending interrupts is set in Cause.IP*/
     // devo prendere i bit di cause da 2^9 a 2^15
 
-    unsigned int bit_check = 1 << 9; 
+    //unsigned int bit_check = 1 << 9; 
     // for each line manage the interrupt
     for (int i = 1; i < 8; i++) {
        // klog_print("sono nel for\n");
-        if (cause & bit_check)
+        if (cause & CAUSE_IP(i))
             manageInterr(i);
-        bit_check = bit_check << 1;
+        //bit_check = bit_check << 1;
     }
 }
 
@@ -48,8 +48,6 @@ void manageInterr(int line){
             insertProcQ(&low_priority_queue, currentProcess);
         else
             insertProcQ(&high_priority_queue, currentProcess);
-        
-
         scheduler();
     }
     else if(line == 2){  // reload interval timer
@@ -84,7 +82,7 @@ void manageInterr(int line){
             klog_print("sto per fare il LDST\n");
             //processor_state->pc_epc += WORDLEN;
             //processor_state->reg_t9 = processor_state->pc_epc;
-            LDST(processor_state);  // load old processor state
+            LDST((state_t *) BIOSDATAPAGE);  // load old processor state
             //klog_print("ho fatto la LDST\n");
         }
     }

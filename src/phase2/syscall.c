@@ -47,7 +47,7 @@ void Terminate_Process_NSYS2(int pid, state_t *except_state) {
         terminateProgeny(currentProcess);
         currentProcess = NULL;
     } else { //elimino il processo con il pid indicato
-        klog_print_hex(pid);
+        //klog_print_hex(pid);
         breakpoint();
         pcb_PTR proc = (memaddr) pid;
         outChild(proc);
