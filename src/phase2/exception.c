@@ -38,49 +38,49 @@ void syscall_exception(){
         pass_up_or_die(GENERALEXCEPT);
     } 
 
-    processor_state->pc_epc += WORD_SIZE;
-    processor_state->reg_t9 = processor_state->pc_epc;
+    //processor_state->pc_epc += WORD_SIZE;
+    //processor_state->reg_t9 = processor_state->pc_epc;
 
 
     switch (a0){
     case CREATEPROCESS:
-        Create_Process_NSYS1();
+        Create_Process_NSYS1(processor_state);
         break;
     case TERMPROCESS:
-        Terminate_Process_NSYS2(a1);
+        Terminate_Process_NSYS2(a1,processor_state);
         break;
     case PASSEREN:
-        Passeren_NSYS3(a1);
+        Passeren_NSYS3(a1,processor_state);
         break;
     case VERHOGEN:
-        Verhogen_NSYS4(a1);
+        Verhogen_NSYS4(a1,processor_state);
         break;
     case DOIO:
-        DO_IO_Device_NSYS5();
+        DO_IO_Device_NSYS5(processor_state);
         break;
     case GETTIME:
-        NSYS6_Get_CPU_Time();
+        NSYS6_Get_CPU_Time(processor_state);
         break;
     case CLOCKWAIT:
-        NSYS7_Wait_For_Clock();
+        NSYS7_Wait_For_Clock(processor_state);
         break;
     case GETSUPPORTPTR:
-        NSYS8_Get_SUPPORT_Data();
+        NSYS8_Get_SUPPORT_Data(processor_state);
         break;
     case GETPROCESSID:
-        NSYS9_Get_Process_ID();
+        NSYS9_Get_Process_ID(processor_state);
         break;
     case YIELD:
-        NSYS10_Yield();
+        NSYS10_Yield(processor_state);
         break;
     default:
-        break;
+        pass_up_or_die(GENERALEXCEPT);
     }
 }
 
 void pass_up_or_die(int except_type){    // check if similar to trap
     if (currentProcess->p_supportStruct == NULL){
-        Terminate_Process_NSYS2(currentProcess->p_pid);
+        Terminate_Process_NSYS2(currentProcess->p_pid, processor_state);
     }else{
         // Copy the saved exception state from the BIOS Data Page to the correct sup exceptState field of the Current Process
         currentProcess->p_supportStruct->sup_exceptState[except_type] = *processor_state;  

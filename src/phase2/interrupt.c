@@ -1,6 +1,6 @@
 #include "interrupt.h"
 
-int bruno = 1;
+//int bruno = 1;
 
 void interrupt_exception(unsigned int cause){
  
