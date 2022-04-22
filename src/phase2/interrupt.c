@@ -96,7 +96,9 @@ void manageInterr(int line){
             scheduler();
         else{
             klog_print("sto per fare il LDST\n");
-            LDST(*((state_t *) BIOSDATAPAGE));  // load old processor state
+            processor_state->pc_epc += WORDLEN;
+            processor_state->reg_t9 = processor_state->pc_epc;
+            LDST(processor_state);  // load old processor state
             klog_print("ho fatto la LDST\n");
         }
     }
@@ -172,7 +174,7 @@ klog_print("\nINTERRUPT LOC: ");
         // Place the stored off status code in the newly unblocked pcb’s v0 register.
         unblockedProcess->p_s.reg_v0 = status->status;
 
-        unblockedProcess->p_semAdd = NULL;
+        //unblockedProcess->p_semAdd = NULL;
         //unblockedProcess->p_time += (CURRENT_TOD - interrTime);
         
         cpu_t endTime;
@@ -194,7 +196,9 @@ klog_print("\nINTERRUPT LOC: ");
         scheduler();
     else{
         // processor_state->pc_epc += WORD_SIZE;
-        LDST(*((state_t *) BIOSDATAPAGE));  // load old processor state
+        processor_state->pc_epc += WORDLEN;
+        processor_state->reg_t9 = processor_state->pc_epc;
+        LDST(processor_state);  // load old processor state
     }
 }
 

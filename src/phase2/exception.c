@@ -39,6 +39,8 @@ void syscall_exception(){
     } 
 
     processor_state->pc_epc += WORD_SIZE;
+    processor_state->reg_t9 = processor_state->pc_epc;
+
 
     switch (a0){
     case CREATEPROCESS:
