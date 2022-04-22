@@ -140,7 +140,7 @@ void manageNTInt(int line, int dev){
         if (receive_interr == 1)
             dev += 8;
 
-    }
+    } 
     else {
         devAddrBase->dtp.command = ACK;                     // Acknowledge the interrupt 
         status->status = devAddrBase->dtp.status;           // Save off the status code from the device’s device register
@@ -149,6 +149,17 @@ void manageNTInt(int line, int dev){
     // Semaphore associated with this (sub)device
     int sem_loc = dev + (DEVPERINT * (line-3));
     int *semAdd = &dSemaphores[sem_loc];
+
+
+ klog_print("\nINTERRUPT LOC: ");
+    klog_print_hex(line);
+klog_print("\nINTERRUPT LOC: ");
+
+    klog_print_hex(dev);
+klog_print("\nINTERRUPT LOC: ");
+
+    klog_print_hex(sem_loc);
+
 
     // Perform a V operation on the Nucleus
     //dSemaphores[semAdd]++;

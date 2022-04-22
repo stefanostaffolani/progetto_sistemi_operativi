@@ -38,6 +38,8 @@ void syscall_exception(){
         pass_up_or_die(GENERALEXCEPT);
     } 
 
+    processor_state->pc_epc += WORD_SIZE;
+
     switch (a0){
     case CREATEPROCESS:
         Create_Process_NSYS1();

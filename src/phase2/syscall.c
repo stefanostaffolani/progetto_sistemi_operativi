@@ -92,19 +92,21 @@ void Passeren_NSYS3(int *semAddr) {
         LDST(processor_state); //control is returned to the Current Process
         */
 
-        processor_state->pc_epc += WORD_SIZE;
-
-        currentProcess->p_s = *((state_t *) BIOSDATAPAGE);
+        // processor_state->pc_epc += WORD_SIZE;
 
         cpu_t endTime;
         STCK(endTime);
         currentProcess->p_time = endTime - startTime;
 
         insertBlocked(semAddr, currentProcess);
+
+        currentProcess->p_s = *processor_state;
+
         scheduler();
     }
     else if(headBlocked(semAddr) == NULL) { 
         *semAddr--;
+        LDST(processor_state);
     }
     else{
         pcb_PTR runningProcess = removeBlocked(semAddr);
@@ -112,6 +114,7 @@ void Passeren_NSYS3(int *semAddr) {
             insertProcQ(&low_priority_queue, runningProcess); //and is placed in the Ready Queue
         else
             insertProcQ(&high_priority_queue, runningProcess); //and is placed in the Ready Queue
+        LDST(processor_state);
     }
 
 
@@ -136,9 +139,7 @@ void Verhogen_NSYS4(int *semAddr) {
 
     if(*semAddr == 1){
         
-        processor_state->pc_epc += WORD_SIZE;
-        
-        currentProcess->p_s = *((state_t *) BIOSDATAPAGE); 
+        // currentProcess->p_s = *((state_t *) BIOSDATAPAGE); 
 
         cpu_t endTime;
         STCK(endTime);
@@ -154,10 +155,14 @@ void Verhogen_NSYS4(int *semAddr) {
         processor_state->pc_epc += WORD_SIZE;
         LDST(processor_state ); //control is returned to the Current Process
         */
+
+        currentProcess->p_s = *processor_state;
+
         scheduler();
     }
     else if(headBlocked(semAddr) == NULL) { 
         *semAddr++;
+        LDST(processor_state);
     }
     else{
         pcb_PTR runningProcess = removeBlocked(semAddr);
@@ -165,6 +170,7 @@ void Verhogen_NSYS4(int *semAddr) {
             insertProcQ(&low_priority_queue, runningProcess); //and is placed in the Ready Queue
         else
             insertProcQ(&high_priority_queue, runningProcess); //and is placed in the Ready Queue
+        LDST(processor_state);
     }
     klog_print("esco dalla veroghen...\n");
 }
@@ -209,30 +215,28 @@ void DO_IO_Device_NSYS5() {
 
     int sem_loc = devNum + (DEVPERINT * intLine);
     int *semAdd = &dSemaphores[sem_loc];
+
+    klog_print("\nSYS LOC: ");
+    klog_print_hex(intLine);
+klog_print("\nSYS LOC: ");
+
+    klog_print_hex(devNum);
+klog_print("\nSYS LOC: ");
+
+    klog_print_hex(sem_loc);
     //processor_state->reg_a1 = semAdd;
     //Passeren_NSYS3(semAdd);
     // TODO: la faccio sta p operation?
 
     //perform a P operation and always block the Current Process on the ASL
-    klog_print("sto per fare insertBlocked\n");
+    sbCount++; 
+    Passeren_NSYS3(semAdd);
 
-    processor_state->pc_epc += WORD_SIZE;
-
-    currentProcess->p_s = *((state_t *) BIOSDATAPAGE);
-
-    cpu_t endTime;
-    STCK(endTime);
-    currentProcess->p_time = endTime - startTime;
-    
-    insertBlocked(semAdd, currentProcess);
-    sbCount++;
-    // currentProcess->p_s = *processor_state;
-    klog_print("sto per chiamare lo scheduler\n");
-    
+    // currentProcess->p_s = *processor_state;    
     //state_t *status = cmdAddr - WORDLEN;    // TODO: controllare questo valore poiche' manda in panic la print()
     //processor_state->reg_v0 = status->status;
     //the scheduler is called
-    scheduler();
+    // scheduler();
     klog_print("finita la DOIO\n");
 }
 
@@ -248,12 +252,8 @@ void NSYS7_Wait_For_Clock(){
     klog_print("entro nella NSYS7...\n");
 
     
-    processor_state->pc_epc += WORD_SIZE;
-
     //sbCount++;      // TODO: non ha senso sta cosa
     //Passeren_NSYS3(&(dSemaphores[MAXSEM-1]));
-
-    currentProcess->p_s = *((state_t *) BIOSDATAPAGE);
 
     cpu_t endTime;
     STCK(endTime);
@@ -289,7 +289,7 @@ void NSYS10_Yield(){
         insertProcQ(&low_priority_queue, currentProcess);
     else
         insertProcQ(&high_priority_queue, currentProcess);    
-    currentProcess->p_s = *((state_t *) BIOSDATAPAGE);
+    // currentProcess->p_s = *((state_t *) BIOSDATAPAGE);
     cpu_t endTime;
     STCK(endTime);
     currentProcess->p_time = endTime = startTime;
