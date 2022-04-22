@@ -1,5 +1,7 @@
 #include "syscall.h"
 
+int check = 0;
+
 void Create_Process_NSYS1(state_t *except_state) {
 //alloco un PCB per il nuovo processo
     pcb_PTR newProcess = allocPcb();
@@ -8,8 +10,8 @@ void Create_Process_NSYS1(state_t *except_state) {
     } else {
         //id del processo appena creato e' l'inidirizzo della struttura pcb_t corrispondente
         newProcess->p_pid = (memaddr) newProcess;
-        klog_print_hex(newProcess->p_pid);
-        breakpoint();
+        //klog_print_hex(newProcess->p_pid);
+        //breakpoint();
         //to say the new process could be created
         processor_state->reg_v0 = newProcess->p_pid;
         //take the initial state from the a1 register
@@ -83,17 +85,17 @@ void terminateSingleProcess(pcb_t* removeMe){
 
 void Passeren_NSYS3(int *semAddr, state_t *except_state) {
     
-    klog_print("entro nella passeren...\n");
+    //klog_print("entro nella passeren...\n");
     if(*semAddr == 0){
         cpu_t endTime;
         STCK(endTime);
-        currentProcess->p_time = endTime - startTime;
+        currentProcess->p_time += endTime - startTime;
         insertBlocked(semAddr, currentProcess);
         currentProcess->p_s = *except_state;
         scheduler();
     }
     else if(headBlocked(semAddr) == NULL) { 
-        *semAddr--;
+        (*semAddr)--;
         except_state->pc_epc += WORD_SIZE;
         LDST(except_state);
     }
@@ -110,17 +112,17 @@ void Passeren_NSYS3(int *semAddr, state_t *except_state) {
 
 void Verhogen_NSYS4(int *semAddr, state_t *except_state) {
     //physical address of the semaphore in a1
-    klog_print("entro nella veroghen...\n");
+    //klog_print("entro nella veroghen...\n");
     if(*semAddr == 1){
         cpu_t endTime;
         STCK(endTime);
-        currentProcess->p_time = endTime - startTime;
+        currentProcess->p_time += endTime - startTime;
         insertBlocked(semAddr, currentProcess);
         currentProcess->p_s = *except_state;
         scheduler();
     }
     else if(headBlocked(semAddr) == NULL) { 
-        *semAddr++;
+        (*semAddr)++;
         except_state->pc_epc += WORD_SIZE;
         LDST(except_state);
     }
@@ -176,16 +178,17 @@ void DO_IO_Device_NSYS5(state_t *except_state) {
 
     int sem_loc = devNum + (DEVPERINT * intLine);
     int *semAdd = &dSemaphores[sem_loc];
+    check = *semAdd;
     //perform a P operation and always block the Current Process on the ASL
     sbCount++; 
     Passeren_NSYS3(semAdd, except_state);
-    klog_print("finita la DOIO\n");
+    //klog_print("finita la DOIO\n");
 }
 
 void NSYS6_Get_CPU_Time(state_t *except_state){
     cpu_t endTime;
     STCK(endTime);
-    currentProcess->p_time = endTime - startTime;
+    currentProcess->p_time += endTime - startTime;
     except_state->reg_v0 = currentProcess->p_time;
     except_state->pc_epc += WORD_SIZE;
     LDST(except_state);
@@ -195,7 +198,7 @@ void NSYS7_Wait_For_Clock(state_t *except_state){
     klog_print("entro nella NSYS7...\n");
     cpu_t endTime;
     STCK(endTime);
-    currentProcess->p_time = endTime - startTime;
+    currentProcess->p_time += endTime - startTime;
     insertBlocked(&dSemaphores[MAXSEM-1], currentProcess);
     sbCount++;
     except_state->pc_epc += WORD_SIZE; 
@@ -230,6 +233,6 @@ void NSYS10_Yield(state_t *except_state){
     // currentProcess->p_s = *((state_t *) BIOSDATAPAGE);
     cpu_t endTime;
     STCK(endTime);
-    currentProcess->p_time = endTime = startTime;
+    currentProcess->p_time += endTime - startTime;
     scheduler();
 }

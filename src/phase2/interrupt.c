@@ -16,26 +16,12 @@ void interrupt_exception(unsigned int cause){
 
     unsigned int bit_check = 1 << 9; 
     // for each line manage the interrupt
-    
-    //klog_print_hex(cause);
-
-    // if(bruno < 2){
-    //     klog_print("\n");
-    //     klog_print_hex(cause);
-    //     bruno++;
-    // }
-
-    //klog_print("prima del for\n");
-
     for (int i = 1; i < 8; i++) {
        // klog_print("sono nel for\n");
         if (cause & bit_check)
             manageInterr(i);
         bit_check = bit_check << 1;
     }
-    //klog_print("\n");
-    //klog_print("dopo il for\n");
-
 }
 
 void manageInterr(int line){
@@ -46,7 +32,7 @@ void manageInterr(int line){
         klog_print("si tratta di un plt timer\n");
         /* Acknowledge the PLT interrupt by loading the timer with a new value.
         [Section 4.1.4-pops]*/ 
-        setTIMER(-1);
+        setTIMER(0xFFFFFFFF);
         
         /*Save off the complete processor state at the time of the exception in a BIOS
         data structure on the BIOS Data Page. For Processor 0, the address of this
@@ -55,7 +41,7 @@ void manageInterr(int line){
         
         cpu_t endTime;
         STCK(endTime);
-        currentProcess->p_time = endTime - startTime;
+        currentProcess->p_time += endTime - startTime;
 
         /* Place the Current Process on the Ready Queue */
         if(currentProcess->p_prio == PROCESS_PRIO_LOW)
@@ -81,7 +67,7 @@ void manageInterr(int line){
             
             cpu_t endTime;
             STCK(endTime);
-            unblockedP->p_time = endTime - startTime;
+            unblockedP->p_time += endTime - startTime;
 
             if(unblockedP->p_prio == PROCESS_PRIO_LOW)  // setting process status to ready
                 insertProcQ(&low_priority_queue, unblockedP);
@@ -165,17 +151,17 @@ void manageNTInt(int line, int dev){
     
     //pcb_PTR unblockedProcess = removeBlocked(semAdd);
     if(headBlocked(semAdd) == NULL) { 
-        *semAdd++;
+        //(*semAdd)++;
         LDST(processor_state);
     }
     else{
-        sbCount--;
+        //sbCount--;
         pcb_PTR unblockedProcess = removeBlocked(semAdd);
         unblockedProcess->p_s.reg_v0 = status;
 
         cpu_t endTime;
         STCK(endTime);
-        unblockedProcess->p_time = endTime - startTime;
+        unblockedProcess->p_time += endTime - startTime;
 
 
         if(unblockedProcess->p_prio == PROCESS_PRIO_LOW)
@@ -200,8 +186,7 @@ void manageNTInt(int line, int dev){
         currentProcess->p_time = endTime - startTime;
 
         // decreasing number of sb processes
-        sbCount--;
-        klog_print("decrementato sbCount\n");
+    
         
         // Insert the newly unblocked pcb on the Ready Queue
         if(unblockedProcess->p_prio == PROCESS_PRIO_LOW)  

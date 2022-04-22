@@ -2,7 +2,7 @@
 
 void exceptionHandler();
 
-void syscall_exception();
+void syscall_exception(state_t *);
 
 void interrupt_exception();
 

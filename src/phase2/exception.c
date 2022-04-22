@@ -9,7 +9,7 @@ void exceptionHandler(){
     // klog_print_hex(CAUSE_CODE);
     switch (CAUSE_CODE){
     case EXC_SYS:
-        syscall_exception();
+        syscall_exception(processor_state);
         break;
     case EXC_INT:
         interrupt_exception(cause);
@@ -26,14 +26,14 @@ void exceptionHandler(){
 }
 
 
-void syscall_exception(){
-    unsigned int a0 = processor_state->reg_a0;
-    unsigned int a1 = processor_state->reg_a1;
-    unsigned int a2 = processor_state->reg_a2;
-    unsigned int a3 = processor_state->reg_a3;
+void syscall_exception(state_t *exception_state){
+    unsigned int a0 = exception_state->reg_a0;
+    unsigned int a1 = exception_state->reg_a1;
+    //unsigned int a2 = processor_state->reg_a2;
+    //unsigned int a3 = processor_state->reg_a3;
     // processor_state->pc_epc += WORD_SIZE;
-
-    if ((processor_state->status & USERPON) != ALLOFF){ //il processo non e' in kernel mode
+    
+    if ((exception_state->status & USERPON) != ALLOFF){ //il processo non e' in kernel mode
         setCAUSE(EXC_RI);
         pass_up_or_die(GENERALEXCEPT);
     } 
@@ -41,37 +41,36 @@ void syscall_exception(){
     //processor_state->pc_epc += WORD_SIZE;
     //processor_state->reg_t9 = processor_state->pc_epc;
 
-
     switch (a0){
     case CREATEPROCESS:
-        Create_Process_NSYS1(processor_state);
+        Create_Process_NSYS1(exception_state);
         break;
     case TERMPROCESS:
-        Terminate_Process_NSYS2(a1,processor_state);
+        Terminate_Process_NSYS2(a1,exception_state);
         break;
     case PASSEREN:
-        Passeren_NSYS3(a1,processor_state);
+        Passeren_NSYS3((int *) a1,exception_state);
         break;
     case VERHOGEN:
-        Verhogen_NSYS4(a1,processor_state);
+        Verhogen_NSYS4((int *) a1,exception_state);
         break;
     case DOIO:
-        DO_IO_Device_NSYS5(processor_state);
+        DO_IO_Device_NSYS5(exception_state);
         break;
     case GETTIME:
-        NSYS6_Get_CPU_Time(processor_state);
+        NSYS6_Get_CPU_Time(exception_state);
         break;
     case CLOCKWAIT:
-        NSYS7_Wait_For_Clock(processor_state);
+        NSYS7_Wait_For_Clock(exception_state);
         break;
     case GETSUPPORTPTR:
-        NSYS8_Get_SUPPORT_Data(processor_state);
+        NSYS8_Get_SUPPORT_Data(exception_state);
         break;
     case GETPROCESSID:
-        NSYS9_Get_Process_ID(processor_state);
+        NSYS9_Get_Process_ID(exception_state);
         break;
     case YIELD:
-        NSYS10_Yield(processor_state);
+        NSYS10_Yield(exception_state);
         break;
     default:
         pass_up_or_die(GENERALEXCEPT);
