@@ -19,4 +19,5 @@ extern devregarea_t* memInfo;
 extern cpu_t interval_timer;
 extern int dSemaphores[MAXSEM];
 
+void breakpoint();
 void memcpy(void *, const void *, size_t);

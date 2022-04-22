@@ -8,6 +8,8 @@ void Create_Process_NSYS1() {
     } else {
         //id del processo appena creato e' l'inidirizzo della struttura pcb_t corrispondente
         newProcess->p_pid = (memaddr) newProcess;
+        klog_print_hex(newProcess->p_pid);
+        breakpoint();
         //to say the new process could be created
         processor_state->reg_v0 = newProcess->p_pid;
         //take the initial state from the a1 register
@@ -42,6 +44,8 @@ void Terminate_Process_NSYS2(int pid) {
         terminateProgeny(currentProcess);
         currentProcess = NULL;
     } else { //elimino il processo con il pid indicato
+        klog_print_hex(pid);
+        breakpoint();
         pcb_PTR proc = (memaddr) pid;
         outChild(proc);
         terminateProgeny(proc);
@@ -172,7 +176,7 @@ void Verhogen_NSYS4(int *semAddr) {
             insertProcQ(&high_priority_queue, runningProcess); //and is placed in the Ready Queue
         LDST(processor_state);
     }
-    klog_print("esco dalla veroghen...\n");
+    //klog_print("esco dalla veroghen...\n");
 }
 
 void DO_IO_Device_NSYS5() {
@@ -216,14 +220,14 @@ void DO_IO_Device_NSYS5() {
     int sem_loc = devNum + (DEVPERINT * intLine);
     int *semAdd = &dSemaphores[sem_loc];
 
-    klog_print("\nSYS LOC: ");
-    klog_print_hex(intLine);
-klog_print("\nSYS LOC: ");
+    //klog_print("\nSYS LOC: ");
+    //klog_print_hex(intLine);
+    //klog_print("\nSYS LOC: ");
 
-    klog_print_hex(devNum);
-klog_print("\nSYS LOC: ");
+    //klog_print_hex(devNum);
+    //klog_print("\nSYS LOC: ");
 
-    klog_print_hex(sem_loc);
+    //klog_print_hex(sem_loc);
     //processor_state->reg_a1 = semAdd;
     //Passeren_NSYS3(semAdd);
     // TODO: la faccio sta p operation?
@@ -245,7 +249,7 @@ void NSYS6_Get_CPU_Time(){
     STCK(endTime);
     currentProcess->p_time = endTime - startTime;
     processor_state->reg_v0 = currentProcess->p_time;
-    LDST(*((state_t *) BIOSDATAPAGE));
+    LDST(processor_state);
 }
 
 void NSYS7_Wait_For_Clock(){
@@ -271,7 +275,7 @@ void NSYS7_Wait_For_Clock(){
 
 void NSYS8_Get_SUPPORT_Data(){
     processor_state->reg_v0 = (unsigned int) currentProcess->p_supportStruct;
-    LDST(*((state_t *) BIOSDATAPAGE));
+    LDST(processor_state);
 }
 
 void NSYS9_Get_Process_ID(){
@@ -281,7 +285,7 @@ void NSYS9_Get_Process_ID(){
     else{
         processor_state->reg_v0 = currentProcess->p_parent->p_pid;
     }
-    LDST(*((state_t *) BIOSDATAPAGE));
+    LDST(processor_state);
 }
 
 void NSYS10_Yield(){

@@ -40,6 +40,7 @@ int main(){
 
     initPcb->p_prio = PROCESS_PRIO_LOW;
     initPcb->p_pid = (memaddr) initPcb;
+    //klog_print_hex(initPcb->p_pid);
     initPcb->p_time = 0;
     initPcb->p_semAdd = NULL;
     initPcb->p_supportStruct = NULL;

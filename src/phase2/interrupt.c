@@ -96,10 +96,10 @@ void manageInterr(int line){
             scheduler();
         else{
             klog_print("sto per fare il LDST\n");
-            processor_state->pc_epc += WORDLEN;
-            processor_state->reg_t9 = processor_state->pc_epc;
+            //processor_state->pc_epc += WORDLEN;
+            //processor_state->reg_t9 = processor_state->pc_epc;
             LDST(processor_state);  // load old processor state
-            klog_print("ho fatto la LDST\n");
+            //klog_print("ho fatto la LDST\n");
         }
     }
     else{   // Non-Timer Interrupts
@@ -152,24 +152,35 @@ void manageNTInt(int line, int dev){
     int sem_loc = dev + (DEVPERINT * (line-3));
     int *semAdd = &dSemaphores[sem_loc];
 
-
- klog_print("\nINTERRUPT LOC: ");
-    klog_print_hex(line);
-klog_print("\nINTERRUPT LOC: ");
-
-    klog_print_hex(dev);
-klog_print("\nINTERRUPT LOC: ");
-
-    klog_print_hex(sem_loc);
-
-
+    //klog_print("\nINTERRUPT LOC: ");
+    //klog_print_hex(line);
+    //klog_print("\nINTERRUPT LOC: ");
+    //klog_print_hex(dev);
+    //klog_print("\nINTERRUPT LOC: ");
+    //klog_print_hex(sem_loc);
+    //Verhogen_NSYS4(semAdd);
+    //processor_state->reg_v0 = status->status;
     // Perform a V operation on the Nucleus
     //dSemaphores[semAdd]++;
+    
     pcb_PTR unblockedProcess = removeBlocked(semAdd);
+    if(headBlocked(semAdd) == NULL) { 
+        *semAdd++;
+        LDST(processor_state);
+    }
+    else{
+        pcb_PTR unblockedProcess = removeBlocked(semAdd);
+        unblockedProcess->p_s.reg_v0 = status->status;
+        if(unblockedProcess->p_prio == PROCESS_PRIO_LOW)
+            insertProcQ(&low_priority_queue, unblockedProcess); //and is placed in the Ready Queue
+        else
+            insertProcQ(&high_priority_queue, unblockedProcess); //and is placed in the Ready Queue
+        LDST(processor_state);
+    }
+    /*
     if (unblockedProcess == NULL){     //TODO: rimuovere in seguito
         klog_print("unblocked is NULL\n");
     }
-    
     if(unblockedProcess !=  NULL){
         // Place the stored off status code in the newly unblocked pcb’s v0 register.
         unblockedProcess->p_s.reg_v0 = status->status;
@@ -191,15 +202,13 @@ klog_print("\nINTERRUPT LOC: ");
         else
             insertProcQ(&high_priority_queue, unblockedProcess);
     }
-
+    */
     if(currentProcess == NULL)          // if there was no process running
         scheduler();
     else{
         // processor_state->pc_epc += WORD_SIZE;
-        processor_state->pc_epc += WORDLEN;
-        processor_state->reg_t9 = processor_state->pc_epc;
+        //processor_state->pc_epc += WORDLEN;
+        //processor_state->reg_t9 = processor_state->pc_epc;
         LDST(processor_state);  // load old processor state
     }
 }
-
-

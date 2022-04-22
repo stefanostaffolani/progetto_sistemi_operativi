@@ -80,12 +80,14 @@ void syscall_exception(){
 
 void pass_up_or_die(int except_type){    // check if similar to trap
     if (currentProcess->p_supportStruct == NULL){
-        Terminate_Process_NSYS2();
+        Terminate_Process_NSYS2(currentProcess->p_pid);
     }else{
         // Copy the saved exception state from the BIOS Data Page to the correct sup exceptState field of the Current Process
         currentProcess->p_supportStruct->sup_exceptState[except_type] = *processor_state;  
         // Perform a LDCXT using the fields from the correct sup exceptContext field of the Current Process.
         context_t support = currentProcess->p_supportStruct->sup_exceptContext[except_type];
+        breakpoint();
+        klog_print("sto per fare la LDXCT\n");
         LDCXT(support.stackPtr, support.status, support.pc);
     }
 }
