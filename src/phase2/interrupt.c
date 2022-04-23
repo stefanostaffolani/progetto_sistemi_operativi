@@ -2,7 +2,7 @@
 
 //int bruno = 1;
 
-void interrupt_exception(unsigned int cause){
+void interrupt_exception(unsigned int cause, state_t *exception_state){
  
     // klog_print("entro interrupt \n");
     // TODO: verificare le operazioni bit a bit
@@ -19,12 +19,12 @@ void interrupt_exception(unsigned int cause){
     for (int i = 1; i < 8; i++) {
        // klog_print("sono nel for\n");
         if (cause & CAUSE_IP(i))
-            manageInterr(i);
+            manageInterr(i, exception_state);
         //bit_check = bit_check << 1;
     }
 }
 
-void manageInterr(int line){
+void manageInterr(int line, state_t *exception_state){
     klog_print("mannaggio un interrupt..\n");
 
     if(line == 1){  // plt processor local timer interrupt
@@ -37,17 +37,19 @@ void manageInterr(int line){
         /*Save off the complete processor state at the time of the exception in a BIOS
         data structure on the BIOS Data Page. For Processor 0, the address of this
         processor state is 0x0FFF.F000.*/
-        currentProcess->p_s = *((state_t*) BIOSDATAPAGE);
-        
-        cpu_t endTime;
-        STCK(endTime);
-        currentProcess->p_time += endTime - startTime;
-
-        /* Place the Current Process on the Ready Queue */
-        if(currentProcess->p_prio == PROCESS_PRIO_LOW)
-            insertProcQ(&low_priority_queue, currentProcess);
-        else
-            insertProcQ(&high_priority_queue, currentProcess);
+        if (currentProcess != NULL){
+            currentProcess->p_s = *exception_state;
+            cpu_t endTime;
+            STCK(endTime);
+            currentProcess->p_time += endTime - startTime;
+            /* Place the Current Process on the Ready Queue */
+            if(currentProcess->p_prio == PROCESS_PRIO_LOW)
+                insertProcQ(&low_priority_queue, currentProcess);
+            else
+                insertProcQ(&high_priority_queue, currentProcess);
+            currentProcess = NULL;    // controllare questa cosa >>> dovrebbe essere per lo scheduler...
+        }
+        //currentProcess->p_s = *((state_t*) BIOSDATAPAGE);
         scheduler();
     }
     else if(line == 2){  // reload interval timer
@@ -76,15 +78,15 @@ void manageInterr(int line){
 
         dSemaphores[MAXSEM-1] = 0;
 
-        if(currentProcess == NULL)
-            scheduler();
-        else{
-            klog_print("sto per fare il LDST\n");
+        //if(currentProcess == NULL)
+          //  scheduler();
+        //else{
+        klog_print("sto per fare il LDST\n");
             //processor_state->pc_epc += WORDLEN;
             //processor_state->reg_t9 = processor_state->pc_epc;
-            LDST((state_t *) BIOSDATAPAGE);  // load old processor state
+        STCK(startTime);   // ??va aggiornato lo start time ??
+        LDST(exception_state);  // load old processor state
             //klog_print("ho fatto la LDST\n");
-        }
     }
     else{   // Non-Timer Interrupts
         klog_print("devicessss\n");
@@ -93,13 +95,13 @@ void manageInterr(int line){
         unsigned int bit_check = 1;
         for(int i = 0; i < DEVPERINT; i++){         // DEVPERINT -> devices per interrupt = 8
             if(deviceRegs->interrupt_dev[line-3] & bit_check)
-                manageNTInt(line, i);
+                manageNTInt(line, i, exception_state);
             bit_check = bit_check << 1;
         }
     }
 }
 
-void manageNTInt(int line, int dev){
+void manageNTInt(int line, int dev, state_t *exception_state){
 
     /* Calculate the address for this device’s device register. [Section 5.1-pops] */
     /* one can compute the starting address of the device’s device register:
@@ -113,14 +115,14 @@ void manageNTInt(int line, int dev){
         klog_print("it's a terminal\n");
         termreg_t* terminalRegister = (termreg_t*) devAddrBase;
         
-        if(terminalRegister->recv_status != READY && terminalRegister->transm_status != BUSY){             // terminal READ
+        if((terminalRegister->recv_status && 0xFF) != READY && terminalRegister->transm_status != BUSY){             // terminal READ
             status = terminalRegister->recv_status;     // Save off the status code from the device’s device register
             terminalRegister->recv_command = ACK;               // Acknowledge the interrupt    
             receive_interr = 1;
         }                       
         else{                                                   // terminal WRITE
             status = terminalRegister->recv_status;     // Save off the status code from the device’s device register
-            terminalRegister->transm_command = ACK;             // Acknowledge the interrupt 
+            terminalRegister->transm_command = ACK;         // Acknowledge the interrupt 
         }
 
         if (receive_interr == 1)
@@ -150,10 +152,10 @@ void manageNTInt(int line, int dev){
     //pcb_PTR unblockedProcess = removeBlocked(semAdd);
     if(headBlocked(semAdd) == NULL) { 
         //(*semAdd)++;
-        LDST(processor_state);
+        LDST(exception_state);
     }
     else{
-        //sbCount--;
+        sbCount--;
         pcb_PTR unblockedProcess = removeBlocked(semAdd);
         unblockedProcess->p_s.reg_v0 = status;
 
@@ -166,7 +168,7 @@ void manageNTInt(int line, int dev){
             insertProcQ(&low_priority_queue, unblockedProcess); //and is placed in the Ready Queue
         else
             insertProcQ(&high_priority_queue, unblockedProcess); //and is placed in the Ready Queue
-        LDST(processor_state);
+        LDST(exception_state);
     }
     /*
     if (unblockedProcess == NULL){     //TODO: rimuovere in seguito

@@ -13,20 +13,20 @@ void exceptionHandler(){
         syscall_exception(processor_state);
         break;
     case EXC_INT:
-        interrupt_exception(cause);
+        interrupt_exception(cause, processor_state);
         break;
     case EXC_MOD:
     case EXC_TLBL:
     case EXC_TLBS:
         klog_print("TLBS PASSUP\n");
         breakpoint();
-        pass_up_or_die(PGFAULTEXCEPT);   // TLBexc...
+        pass_up_or_die(PGFAULTEXCEPT, processor_state);   // TLBexc...
         break;
     default:
         klog_print("def1 PASSUP\n");
         klog_print_hex(CAUSE_CODE);
         breakpoint();
-        pass_up_or_die(GENERALEXCEPT);   // program trap exc...
+        pass_up_or_die(GENERALEXCEPT, processor_state);   // program trap exc...
         break;
     }
 }
@@ -43,7 +43,7 @@ void syscall_exception(state_t *exception_state){
         klog_print("CAUSE PASSUP\n");
         setCAUSE(EXC_RI);
         breakpoint();
-        pass_up_or_die(GENERALEXCEPT);
+        pass_up_or_die(GENERALEXCEPT, exception_state);
     } 
 
     //processor_state->pc_epc += WORD_SIZE;
@@ -82,19 +82,20 @@ void syscall_exception(state_t *exception_state){
         break;
     default:
         klog_print("def2 PASSUP\n");
+        exception_state->cause = (exception_state->cause & ~CAUSE_EXCCODE_MASK) | (EXC_RI << CAUSE_EXCCODE_BIT);
         breakpoint();
-        pass_up_or_die(GENERALEXCEPT);
+        pass_up_or_die(GENERALEXCEPT, exception_state);
     }
 }
 
-void pass_up_or_die(int except_type){    // check if similar to trap
+void pass_up_or_die(int except_type, state_t *exceptio_state){    // check if similar to trap
     klog_print("pass UP\n");
     breakpoint();
     if (currentProcess->p_supportStruct == NULL){
         Terminate_Process_NSYS2(currentProcess->p_pid, processor_state);
     }else{
         // Copy the saved exception state from the BIOS Data Page to the correct sup exceptState field of the Current Process
-        currentProcess->p_supportStruct->sup_exceptState[except_type] = *processor_state;  
+        currentProcess->p_supportStruct->sup_exceptState[except_type] = *exceptio_state;  
         // Perform a LDCXT using the fields from the correct sup exceptContext field of the Current Process.
         context_t support = currentProcess->p_supportStruct->sup_exceptContext[except_type];
         breakpoint();
