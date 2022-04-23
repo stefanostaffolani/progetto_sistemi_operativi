@@ -122,6 +122,7 @@ void print(char *msg) {
         klog_print("\n");
         if ((status & TERMSTATMASK) != RECVD) {
             klog_print("\nsto per andare in panic(print)\n");
+            //breakpoint();
             PANIC();
         }
         s++;

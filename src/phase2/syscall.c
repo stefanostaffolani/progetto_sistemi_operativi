@@ -32,6 +32,8 @@ void Create_Process_NSYS1(state_t *except_state) {
         //this process is in the "ready" state
         newProcess->p_semAdd = NULL;
         //Process Count is incremented by one
+        klog_print("inc prC NSYS1\n");
+        breakpoint();
         prCount++;
     }
     //control returned to the Current Process
@@ -49,7 +51,7 @@ void Terminate_Process_NSYS2(int pid, state_t *except_state) {
     } else { //elimino il processo con il pid indicato
         //klog_print_hex(pid);
         breakpoint();
-        pcb_PTR proc = (memaddr) pid;
+        pcb_PTR proc = (pcb_PTR) pid;
         outChild(proc);
         terminateProgeny(proc);
         proc = NULL;
@@ -66,6 +68,8 @@ void terminateProgeny(pcb_t* removeMe){
 }
 
 void terminateSingleProcess(pcb_t* removeMe){
+    klog_print("dec prC terminate\n");
+    breakpoint();
     prCount--;
     if(removeMe->p_prio == PROCESS_PRIO_LOW)
         outProcQ(&low_priority_queue, removeMe);
@@ -73,10 +77,13 @@ void terminateSingleProcess(pcb_t* removeMe){
         outProcQ(&high_priority_queue, removeMe);
     if(*(removeMe->p_semAdd) == 0){
         //capire se e' bloccato su un device semaphore o no, se non e' un device semaphore allora
-        if (&(dSemaphores[0]) <= removeMe->p_semAdd && removeMe->p_semAdd <= &(dSemaphores[MAXSEM-1]))
+        if (&(dSemaphores[0]) <= removeMe->p_semAdd && removeMe->p_semAdd <= &(dSemaphores[MAXSEM-1])){
+            klog_print("dec sbC terminate\n");
+            breakpoint();
             sbCount--;
+        }
         else
-            *(removeMe->p_semAdd)++;
+            (*(removeMe->p_semAdd))++;
         //altrimenti non faccio niente (cambio solo i soft-blocked count) perche' quando succedera' l'interrupt il semaforo verra' V'ed
         outBlocked(removeMe);
     }
@@ -97,6 +104,7 @@ void Passeren_NSYS3(int *semAddr, state_t *except_state) {
     else if(headBlocked(semAddr) == NULL) { 
         (*semAddr)--;
         except_state->pc_epc += WORD_SIZE;
+        except_state->reg_t9 += WORD_SIZE;
         LDST(except_state);
     }
     else{
@@ -106,6 +114,7 @@ void Passeren_NSYS3(int *semAddr, state_t *except_state) {
         else
             insertProcQ(&high_priority_queue, runningProcess); //and is placed in the Ready Queue
         except_state->pc_epc += WORD_SIZE;
+        except_state->reg_t9 += WORD_SIZE;
         LDST(except_state);
     }
 }
@@ -124,6 +133,7 @@ void Verhogen_NSYS4(int *semAddr, state_t *except_state) {
     else if(headBlocked(semAddr) == NULL) { 
         (*semAddr)++;
         except_state->pc_epc += WORD_SIZE;
+        except_state->reg_t9 += WORD_SIZE;
         LDST(except_state);
     }
     else{
@@ -133,16 +143,18 @@ void Verhogen_NSYS4(int *semAddr, state_t *except_state) {
         else
             insertProcQ(&high_priority_queue, runningProcess); //and is placed in the Ready Queue
         except_state->pc_epc += WORD_SIZE;
+        except_state->reg_t9 += WORD_SIZE;
         LDST(except_state);
     }
 }
 
 void DO_IO_Device_NSYS5(state_t *except_state) {
-    except_state->pc_epc += WORD_SIZE;
+    except_state->pc_epc += WORD_SIZE;   // inc t9
+    except_state->reg_t9 += WORD_SIZE;
     currentProcess->p_s = *except_state;
     klog_print("entro nella DOIO\n");
     // read the interrupt line number in register a1
-    int* cmdAddr = except_state->reg_a1;
+    int* cmdAddr = (int *) except_state->reg_a1;
     //read the device number in register a2
     int cmdValue = except_state->reg_a2;
     klog_print("cmdValue is: ");
@@ -178,9 +190,11 @@ void DO_IO_Device_NSYS5(state_t *except_state) {
 
     int sem_loc = devNum + (DEVPERINT * intLine);
     int *semAdd = &dSemaphores[sem_loc];
-    check = *semAdd;
+    //check = *semAdd;
     //perform a P operation and always block the Current Process on the ASL
-    sbCount++; 
+    klog_print("inc sbC DOIO\n");
+    breakpoint();
+    sbCount++;
     Passeren_NSYS3(semAdd, except_state);
     //klog_print("finita la DOIO\n");
 }
@@ -200,6 +214,8 @@ void NSYS7_Wait_For_Clock(state_t *except_state){
     STCK(endTime);
     currentProcess->p_time += endTime - startTime;
     insertBlocked(&dSemaphores[MAXSEM-1], currentProcess);
+    klog_print("inc sbC NSYS7\n");
+    breakpoint();
     sbCount++;
     except_state->pc_epc += WORD_SIZE; 
     currentProcess->p_s = *except_state;

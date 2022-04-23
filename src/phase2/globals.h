@@ -3,6 +3,7 @@
 #include "asl.h"
 #include "pcb.h"
 #include "/usr/include/umps3/umps/cp0.h"
+#include "/usr/include/umps3/umps/libumps.h"
 #include "debug.h"
 
 #define size_t unsigned int

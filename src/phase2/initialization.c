@@ -46,6 +46,8 @@ int main(){
     initPcb->p_supportStruct = NULL;
     mkEmptyProcQ(&initPcb->p_child);
     mkEmptyProcQ(&initPcb->p_sib);
+    klog_print("inc prC init\n");
+    breakpoint();
     prCount++;
     
   

@@ -57,12 +57,24 @@ void manageInterr(int line, state_t *exception_state){
 
         /*Acknowledge the interrupt by loading the Interval Timer with a new
         value: 100 milliseconds. [Section 4.1.3-pops]*/
+        if (exception_state->status & STATUS_KUc)
+            klog_print("non Kernel mode\n");
+        else
+            klog_print("si kernel mode\n");
+        breakpoint();
         LDIT(PSECOND);
-
+        pcb_PTR unb = headBlocked(&(dSemaphores[MAXSEM-1]));
+        if (unb == NULL)
+            klog_print("unb NULL\n");
+        else
+            klog_print("unb not NULL\n");
+        breakpoint();
         /* Unblock ALL pcbs blocked on the Pseudo-clock semaphore */
         while(headBlocked(&(dSemaphores[MAXSEM - 1])) != NULL){
             klog_print("\ncosa accade?\n");
             pcb_PTR unblockedP = removeBlocked(&dSemaphores[MAXSEM - 1]);
+            klog_print("dec sbC while\n");
+            breakpoint();
             sbCount--;                              // decreasing number of sb processes
             
             cpu_t endTime;
@@ -78,15 +90,16 @@ void manageInterr(int line, state_t *exception_state){
 
         dSemaphores[MAXSEM-1] = 0;
 
-        //if(currentProcess == NULL)
-          //  scheduler();
-        //else{
+        if(currentProcess == NULL)
+            scheduler();
+        else{
         klog_print("sto per fare il LDST\n");
-            //processor_state->pc_epc += WORDLEN;
-            //processor_state->reg_t9 = processor_state->pc_epc;
+        //processor_state->pc_epc += WORDLEN;
+        //processor_state->reg_t9 = processor_state->pc_epc;
         STCK(startTime);   // ??va aggiornato lo start time ??
+
         LDST(exception_state);  // load old processor state
-            //klog_print("ho fatto la LDST\n");
+        }//klog_print("ho fatto la LDST\n");
     }
     else{   // Non-Timer Interrupts
         klog_print("devicessss\n");
@@ -155,6 +168,8 @@ void manageNTInt(int line, int dev, state_t *exception_state){
         LDST(exception_state);
     }
     else{
+        klog_print("dec sbC NTINT\n");
+        breakpoint();
         sbCount--;
         pcb_PTR unblockedProcess = removeBlocked(semAdd);
         unblockedProcess->p_s.reg_v0 = status;
@@ -204,6 +219,8 @@ void manageNTInt(int line, int dev, state_t *exception_state){
         // processor_state->pc_epc += WORD_SIZE;
         //processor_state->pc_epc += WORDLEN;
         //processor_state->reg_t9 = processor_state->pc_epc;
-        LDST(processor_state);  // load old processor state
+        klog_print("NTINT LDST\n");
+        breakpoint();
+        LDST(exception_state);  // load old processor state
     }
 }

@@ -6,6 +6,8 @@
  */
 
 #include "debug.h"
+static void next_char(void);
+static void next_line(void);
 
 #define KLOG_LINES     64     // Number of lines in the buffer. Adjustable, only limited by available memory
 #define KLOG_LINE_SIZE 42     // Length of a single line in characters

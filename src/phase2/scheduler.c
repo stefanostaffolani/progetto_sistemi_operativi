@@ -24,8 +24,8 @@ void scheduler(){
         else if (prCount > 0 && sbCount > 0){   // aspetta...
             //TODO: set STATUS reg for enabling interrupts and disable PLT, maybe done
             setTIMER(0xFFFFFFFF);  
-            setSTATUS(getSTATUS() | IECON | IMON);   //interrupts on and PLT off
             klog_print("sto per fare la wait\n");
+            setSTATUS(IECON | IMON);   //interrupts on and PLT off
             WAIT();
         }else if (prCount > 0 && sbCount == 0){   // Deadlock
             klog_print("si rompe ultimo ramo sched\n");
