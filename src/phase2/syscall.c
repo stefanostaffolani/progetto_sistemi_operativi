@@ -94,7 +94,7 @@ void Passeren_NSYS3(int *semAddr, state_t *except_state) {
     if(*semAddr == 0){
         set_time(currentProcess, startTime);
         except_state->pc_epc += WORD_SIZE;
-        memcpy(&currentProcess->p_s, except_state, sizeof(state_t));
+        memcpy(&(currentProcess->p_s), except_state, sizeof(state_t));
         //currentProcess->p_s = *except_state;
         insertBlocked(semAddr, currentProcess);
         scheduler();
@@ -121,7 +121,7 @@ void Verhogen_NSYS4(int *semAddr, state_t *except_state) {
         set_time(currentProcess, startTime);
         insertBlocked(semAddr, currentProcess);
         except_state->pc_epc += WORD_SIZE;
-        memcpy(&currentProcess->p_s, except_state, sizeof(state_t));
+        memcpy(&(currentProcess->p_s), except_state, sizeof(state_t));
         //currentProcess->p_s = *except_state;
         scheduler();
     }
@@ -207,7 +207,7 @@ void NSYS7_Wait_For_Clock(state_t *except_state){
     breakpoint();
     sbCount++;
     except_state->pc_epc += WORD_SIZE;
-    memcpy(&currentProcess->p_s, except_state, sizeof(state_t));
+    memcpy(&(currentProcess->p_s), except_state, sizeof(state_t));
     //currentProcess->p_s = *except_state;
     klog_print("sto per chiamare lo scheduler\n");
     scheduler();

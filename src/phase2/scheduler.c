@@ -28,11 +28,13 @@ void scheduler(){
             setSTATUS(ALLOFF | IECON | IMON);   //interrupts on and PLT off
             WAIT();
             klog_print("fatta la wait\n");
+            breakpoint();
         }else if (prCount > 0 && sbCount == 0){   // Deadlock
             klog_print("si rompe ultimo ramo sched\n");
             breakpoint();
             PANIC();
         }
     }
-    klog_print("esco dallo scheduler...\n");
+    //klog_print("esco dallo scheduler...\n");
+    //breakpoint();
 }

@@ -1,7 +1,8 @@
 #include "interrupt.h"
 
 void interrupt_exception(unsigned int cause, state_t *exception_state){
- 
+    //klog_print("exc start int\n");
+    //klog_print_hex(exception_state);
     // klog_print("entro interrupt \n");
     // TODO: verificare le operazioni bit a bit
     /*takes
@@ -34,7 +35,7 @@ void manageInterr(int line, state_t *exception_state){
         processor state is 0x0FFF.F000.*/
         if (currentProcess != NULL){
             //currentProcess->p_s = *exception_state;
-            memcpy(&currentProcess->p_s, exception_state, sizeof(state_t));
+            memcpy(&(currentProcess->p_s), exception_state, sizeof(state_t));
             set_time(currentProcess, startTime);
             insert_to_readyq(currentProcess);
             /* Place the Current Process on the Ready Queue */
@@ -74,7 +75,9 @@ void manageInterr(int line, state_t *exception_state){
         if(currentProcess == NULL)
             scheduler();
         else{
-        klog_print("sto per fare il LDST\n");
+        // klog_print("LDST sbrago\n");
+        // klog_print_hex(exception_state);
+        breakpoint();
         LDST(exception_state);  // load old processor state
         }
     }
@@ -130,8 +133,11 @@ void manageNTInt(int line, int dev, state_t *exception_state){
     int *semAdd = &dSemaphores[sem_loc];
 
     if(headBlocked(semAdd) == NULL) { 
-        if(currentProcess != NULL)  //nel dubbio
+        if(currentProcess != NULL){  //nel dubbio
+            // klog_print("exc st\n");
+            // klog_print_hex(exception_state);
             LDST(exception_state);
+        }
         else
             scheduler();
     }
