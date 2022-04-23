@@ -34,6 +34,20 @@ devregarea_t* memInfo;
 
 void breakpoint(){}
 
+// void memcpy(state_t *dest, state_t *src){
+//     dest->cause = src->cause;
+//     dest->entry_hi = src->entry_hi;
+//     for(int i = 0; i < 31; i++)
+//         dest->gpr[i] = src->gpr[i];
+//     // dest->gpr ^= src->gpr;
+//     // src->gpr ^= dest->gpr;
+//     // dest->gpr ^= src->gpr;
+//     dest->hi = src->hi;
+//     dest->lo = src->lo;
+//     dest->pc_epc = src->pc_epc;
+//     dest->status = src->status;
+// }
+
 void memcpy(void *dest, const void *src, size_t n){
     for (size_t i = 0; i < n; i++)
     {
