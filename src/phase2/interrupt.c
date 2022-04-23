@@ -132,23 +132,26 @@ void manageNTInt(int line, int dev, state_t *exception_state){
     int sem_loc = dev + (DEVPERINT * (line-3));
     int *semAdd = &dSemaphores[sem_loc];
 
-    if(headBlocked(semAdd) == NULL) { 
-        if(currentProcess != NULL){  //nel dubbio
-            // klog_print("exc st\n");
-            // klog_print_hex(exception_state);
-            LDST(exception_state);
-        }
-        else
-            scheduler();
-    }
-    else{
-        klog_print("dec sbC NTINT\n");
-        breakpoint();
-        sbCount--;
-        pcb_PTR unblockedProcess = removeBlocked(semAdd);
+    // if(headBlocked(semAdd) == NULL) { 
+    //     if(currentProcess != NULL){  //nel dubbio
+    //         // klog_print("exc st\n");
+    //         // klog_print_hex(exception_state);
+    //         LDST(exception_state);
+    //     }
+    //     else
+    //         scheduler();
+    // }
+    // else{
+    klog_print("dec sbC NTINT\n");
+    breakpoint();
+    pcb_PTR unblockedProcess = removeBlocked(semAdd);
+    if(unblockedProcess != NULL){
         unblockedProcess->p_s.reg_v0 = status;
+        sbCount--;
         insert_to_readyq(unblockedProcess);
+        // currentProcess = NULL;
     }
+   // }
     if(currentProcess == NULL){          // if there was no process running
         klog_print("current proc is NULL");
         scheduler();

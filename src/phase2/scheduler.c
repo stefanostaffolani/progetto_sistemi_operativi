@@ -35,6 +35,7 @@ void scheduler(){
             PANIC();
         }
     }
+
     //klog_print("esco dallo scheduler...\n");
     //breakpoint();
 }
