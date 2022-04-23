@@ -33,7 +33,8 @@ void manageInterr(int line, state_t *exception_state){
         data structure on the BIOS Data Page. For Processor 0, the address of this
         processor state is 0x0FFF.F000.*/
         if (currentProcess != NULL){
-            currentProcess->p_s = *exception_state;
+            //currentProcess->p_s = *exception_state;
+            memcpy(&currentProcess->p_s, exception_state, sizeof(state_t));
             set_time(currentProcess, startTime);
             insert_to_readyq(currentProcess);
             /* Place the Current Process on the Ready Queue */
@@ -65,7 +66,6 @@ void manageInterr(int line, state_t *exception_state){
             klog_print("dec sbC while\n");
             breakpoint();
             sbCount--;                              // decreasing number of sb processes
-            //set_time(unblockedP, startTime);
             insert_to_readyq(unblockedP);
         }
 
@@ -75,17 +75,8 @@ void manageInterr(int line, state_t *exception_state){
             scheduler();
         else{
         klog_print("sto per fare il LDST\n");
-        //processor_state->pc_epc += WORDLEN;
-        //processor_state->reg_t9 = processor_state->pc_epc;
-        //STCK(startTime);   // ??va aggiornato lo start time ??
-        //klog_print("ho fatto STCK\n");
-        // if (exception_state->status & STATUS_KUc)
-        //     klog_print("non Kernel mode\n");
-        // breakpoint();
-        //exception_state->pc_epc += WORDLEN; //?????
-        //exception_state->reg_t9;
-        LDST((state_t *) BIOSDATAPAGE);  // load old processor state
-        }//klog_print("ho fatto la LDST\n");
+        LDST(exception_state);  // load old processor state
+        }
     }
     else{   // Non-Timer Interrupts
         klog_print("devicessss\n");
@@ -119,10 +110,7 @@ void manageNTInt(int line, int dev, state_t *exception_state){
             terminalRegister->recv_command = ACK;               // Acknowledge the interrupt    
             receive_interr = 1;
         }                       
-        // else{                                                   // terminal WRITE
-        //     status = terminalRegister->recv_status;     // Save off the status code from the device’s device register
-        //     terminalRegister->transm_command = ACK;         // Acknowledge the interrupt 
-        // }
+
         if((terminalRegister->transm_status != BUSY) && (terminalRegister->transm_status != READY)){
            status = terminalRegister->transm_status;
            terminalRegister->transm_command = ACK; 
@@ -141,19 +129,7 @@ void manageNTInt(int line, int dev, state_t *exception_state){
     int sem_loc = dev + (DEVPERINT * (line-3));
     int *semAdd = &dSemaphores[sem_loc];
 
-    //klog_print("\nINTERRUPT LOC: ");
-    //klog_print_hex(line);
-    //klog_print("\nINTERRUPT LOC: ");
-    //klog_print_hex(dev);
-    //klog_print("\nINTERRUPT LOC: ");
-    //klog_print_hex(sem_loc);
-    //Verhogen_NSYS4(semAdd);
-    //processor_state->reg_v0 = status->status;
-    // Perform a V operation on the Nucleus
-    //dSemaphores[semAdd]++;
-    
     if(headBlocked(semAdd) == NULL) { 
-        //(*semAdd)++;
         if(currentProcess != NULL)  //nel dubbio
             LDST(exception_state);
         else
@@ -166,43 +142,14 @@ void manageNTInt(int line, int dev, state_t *exception_state){
         pcb_PTR unblockedProcess = removeBlocked(semAdd);
         unblockedProcess->p_s.reg_v0 = status;
 
-        //set_time(unblockedProcess, startTime);
         insert_to_readyq(unblockedProcess);
     }
-    /*
-    if (unblockedProcess == NULL){     //TODO: rimuovere in seguito
-        klog_print("unblocked is NULL\n");
-    }
-    if(unblockedProcess !=  NULL){
-        // Place the stored off status code in the newly unblocked pcb’s v0 register.
-        unblockedProcess->p_s.reg_v0 = status->status;
-
-        //unblockedProcess->p_semAdd = NULL;
-        //unblockedProcess->p_time += (CURRENT_TOD - interrTime);
-        
-        cpu_t endTime;
-        STCK(endTime);
-        currentProcess->p_time = endTime - startTime;
-
-        // decreasing number of sb processes
-    
-        
-        // Insert the newly unblocked pcb on the Ready Queue
-        if(unblockedProcess->p_prio == PROCESS_PRIO_LOW)  
-            insertProcQ(&low_priority_queue, unblockedProcess);
-        else
-            insertProcQ(&high_priority_queue, unblockedProcess);
-    }
-    */
 
     if(currentProcess == NULL){          // if there was no process running
         klog_print("current proc is NULL");
         scheduler();
     }
     else{
-        // processor_state->pc_epc += WORD_SIZE;
-        //processor_state->pc_epc += WORDLEN;
-        //processor_state->reg_t9 = processor_state->pc_epc;
         klog_print("NTINT LDST\n");
         breakpoint();
         LDST(exception_state);  // load old processor state

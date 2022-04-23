@@ -88,6 +88,7 @@ void pass_up_or_die(int except_type, state_t *exception_state){    // check if s
     }else{
         // Copy the saved exception state from the BIOS Data Page to the correct sup exceptState field of the Current Process
         currentProcess->p_supportStruct->sup_exceptState[except_type] = *exception_state;  
+        //memcpy(&currentProcess->p_supportStruct->sup_exceptState[except_type], exception_state, sizeof(state_t));
         // Perform a LDCXT using the fields from the correct sup exceptContext field of the Current Process.
         context_t support = currentProcess->p_supportStruct->sup_exceptContext[except_type];
         breakpoint();
