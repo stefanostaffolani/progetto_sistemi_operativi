@@ -11,7 +11,6 @@ int main(){
     //klog_print("init_1\n");
     memaddr ramtop;
     RAMTOP(ramtop);
-
     PassUpVector = (passupvector_t*) PASSUPVECTOR;
     PassUpVector->tlb_refill_handler = (memaddr) uTLB_RefillHandler;
     PassUpVector->exception_stackPtr = (memaddr) KERNELSTACK;

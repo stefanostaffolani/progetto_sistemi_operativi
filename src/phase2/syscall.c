@@ -21,10 +21,8 @@ void Create_Process_NSYS1(state_t *except_state) {
         //take the pointer to a structure containing the additional Support Level fields from the a3 register
         newProcess->p_supportStruct = (support_t*) except_state->reg_a3;
         //newly populated pcb is placed on the Ready Queue...
-        if(newProcess->p_prio == PROCESS_PRIO_LOW)
-            insertProcQ(&low_priority_queue, newProcess);
-        else
-            insertProcQ(&high_priority_queue, newProcess);
+        insert_to_readyq(newProcess);
+
         //...and is made a child of the Current Process
         insertChild(currentProcess, newProcess);
         //the new process has yet to accumulate any cpu time
@@ -94,27 +92,23 @@ void Passeren_NSYS3(int *semAddr, state_t *except_state) {
     
     //klog_print("entro nella passeren...\n");
     if(*semAddr == 0){
-        cpu_t endTime;
-        STCK(endTime);
-        currentProcess->p_time += endTime - startTime;
-        insertBlocked(semAddr, currentProcess);
+        set_time(currentProcess, startTime);
+        except_state->pc_epc += WORD_SIZE;
         currentProcess->p_s = *except_state;
+        insertBlocked(semAddr, currentProcess);
         scheduler();
     }
-    else if(headBlocked(semAddr) == NULL) { 
+    else if(headBlocked(semAddr) == NULL) {
         (*semAddr)--;
         except_state->pc_epc += WORD_SIZE;
-        except_state->reg_t9 += WORD_SIZE;
+        //except_state->reg_t9 += WORD_SIZE;
         LDST(except_state);
     }
     else{
-        pcb_PTR runningProcess = removeBlocked(semAddr);
-        if(runningProcess->p_prio == PROCESS_PRIO_LOW)
-            insertProcQ(&low_priority_queue, runningProcess); //and is placed in the Ready Queue
-        else
-            insertProcQ(&high_priority_queue, runningProcess); //and is placed in the Ready Queue
+        pcb_PTR proc = removeBlocked(semAddr);
+        insert_to_readyq(proc);
         except_state->pc_epc += WORD_SIZE;
-        except_state->reg_t9 += WORD_SIZE;
+        //except_state->reg_t9 += WORD_SIZE;
         LDST(except_state);
     }
 }
@@ -123,35 +117,29 @@ void Verhogen_NSYS4(int *semAddr, state_t *except_state) {
     //physical address of the semaphore in a1
     //klog_print("entro nella veroghen...\n");
     if(*semAddr == 1){
-        cpu_t endTime;
-        STCK(endTime);
-        currentProcess->p_time += endTime - startTime;
+        set_time(currentProcess, startTime);
         insertBlocked(semAddr, currentProcess);
+        except_state->pc_epc += WORD_SIZE;
         currentProcess->p_s = *except_state;
         scheduler();
     }
     else if(headBlocked(semAddr) == NULL) { 
         (*semAddr)++;
         except_state->pc_epc += WORD_SIZE;
-        except_state->reg_t9 += WORD_SIZE;
+        //except_state->reg_t9 += WORD_SIZE;
         LDST(except_state);
     }
     else{
         pcb_PTR runningProcess = removeBlocked(semAddr);
-        if(runningProcess->p_prio == PROCESS_PRIO_LOW)
-            insertProcQ(&low_priority_queue, runningProcess); //and is placed in the Ready Queue
-        else
-            insertProcQ(&high_priority_queue, runningProcess); //and is placed in the Ready Queue
+        insert_to_readyq(runningProcess);
         except_state->pc_epc += WORD_SIZE;
-        except_state->reg_t9 += WORD_SIZE;
+        //except_state->reg_t9 += WORD_SIZE;
         LDST(except_state);
     }
 }
 
 void DO_IO_Device_NSYS5(state_t *except_state) {
-    except_state->pc_epc += WORD_SIZE;   // inc t9
-    except_state->reg_t9 += WORD_SIZE;
-    currentProcess->p_s = *except_state;
+    
     klog_print("entro nella DOIO\n");
     // read the interrupt line number in register a1
     int* cmdAddr = (int *) except_state->reg_a1;
@@ -195,14 +183,15 @@ void DO_IO_Device_NSYS5(state_t *except_state) {
     klog_print("inc sbC DOIO\n");
     breakpoint();
     sbCount++;
+    //except_state->pc_epc += WORD_SIZE;   
+    //except_state->reg_t9 += WORD_SIZE;
+    //currentProcess->p_s = *except_state;  perche' lo fa la Passeren
+    *semAdd = 0;
     Passeren_NSYS3(semAdd, except_state);
-    //klog_print("finita la DOIO\n");
 }
 
 void NSYS6_Get_CPU_Time(state_t *except_state){
-    cpu_t endTime;
-    STCK(endTime);
-    currentProcess->p_time += endTime - startTime;
+    set_time(currentProcess, startTime);
     except_state->reg_v0 = currentProcess->p_time;
     except_state->pc_epc += WORD_SIZE;
     LDST(except_state);
@@ -210,9 +199,7 @@ void NSYS6_Get_CPU_Time(state_t *except_state){
 
 void NSYS7_Wait_For_Clock(state_t *except_state){
     klog_print("entro nella NSYS7...\n");
-    cpu_t endTime;
-    STCK(endTime);
-    currentProcess->p_time += endTime - startTime;
+    set_time(currentProcess, startTime);
     insertBlocked(&dSemaphores[MAXSEM-1], currentProcess);
     klog_print("inc sbC NSYS7\n");
     breakpoint();
@@ -242,13 +229,7 @@ void NSYS9_Get_Process_ID(state_t *except_state){
 }
 
 void NSYS10_Yield(state_t *except_state){
-    if(currentProcess->p_prio == PROCESS_PRIO_LOW)
-        insertProcQ(&low_priority_queue, currentProcess);
-    else
-        insertProcQ(&high_priority_queue, currentProcess);    
-    // currentProcess->p_s = *((state_t *) BIOSDATAPAGE);
-    cpu_t endTime;
-    STCK(endTime);
-    currentProcess->p_time += endTime - startTime;
+    insert_to_readyq(currentProcess);
+    set_time(currentProcess, startTime);
     scheduler();
 }

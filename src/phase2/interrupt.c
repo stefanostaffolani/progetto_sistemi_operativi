@@ -1,7 +1,5 @@
 #include "interrupt.h"
 
-//int bruno = 1;
-
 void interrupt_exception(unsigned int cause, state_t *exception_state){
  
     // klog_print("entro interrupt \n");
@@ -14,13 +12,10 @@ void interrupt_exception(unsigned int cause, state_t *exception_state){
     /*Which interrupt lines have pending interrupts is set in Cause.IP*/
     // devo prendere i bit di cause da 2^9 a 2^15
 
-    //unsigned int bit_check = 1 << 9; 
     // for each line manage the interrupt
     for (int i = 1; i < 8; i++) {
-       // klog_print("sono nel for\n");
         if (cause & CAUSE_IP(i))
             manageInterr(i, exception_state);
-        //bit_check = bit_check << 1;
     }
 }
 
@@ -32,24 +27,18 @@ void manageInterr(int line, state_t *exception_state){
         klog_print("si tratta di un plt timer\n");
         /* Acknowledge the PLT interrupt by loading the timer with a new value.
         [Section 4.1.4-pops]*/ 
-        setTIMER(0xFFFFFFFF);
+        setTIMER(0xFFFFFFFF);  //TODO: aggiusta
         
         /*Save off the complete processor state at the time of the exception in a BIOS
         data structure on the BIOS Data Page. For Processor 0, the address of this
         processor state is 0x0FFF.F000.*/
         if (currentProcess != NULL){
             currentProcess->p_s = *exception_state;
-            cpu_t endTime;
-            STCK(endTime);
-            currentProcess->p_time += endTime - startTime;
+            set_time(currentProcess, startTime);
+            insert_to_readyq(currentProcess);
             /* Place the Current Process on the Ready Queue */
-            if(currentProcess->p_prio == PROCESS_PRIO_LOW)
-                insertProcQ(&low_priority_queue, currentProcess);
-            else
-                insertProcQ(&high_priority_queue, currentProcess);
             currentProcess = NULL;    // controllare questa cosa >>> dovrebbe essere per lo scheduler...
         }
-        //currentProcess->p_s = *((state_t*) BIOSDATAPAGE);
         scheduler();
     }
     else if(line == 2){  // reload interval timer
@@ -76,16 +65,8 @@ void manageInterr(int line, state_t *exception_state){
             klog_print("dec sbC while\n");
             breakpoint();
             sbCount--;                              // decreasing number of sb processes
-            
-            cpu_t endTime;
-            STCK(endTime);
-            unblockedP->p_time += endTime - startTime;
-
-            if(unblockedP->p_prio == PROCESS_PRIO_LOW)  // setting process status to ready
-                insertProcQ(&low_priority_queue, unblockedP);
-            else
-                insertProcQ(&high_priority_queue, unblockedP);
-            
+            //set_time(unblockedP, startTime);
+            insert_to_readyq(unblockedP);
         }
 
         dSemaphores[MAXSEM-1] = 0;
@@ -96,9 +77,14 @@ void manageInterr(int line, state_t *exception_state){
         klog_print("sto per fare il LDST\n");
         //processor_state->pc_epc += WORDLEN;
         //processor_state->reg_t9 = processor_state->pc_epc;
-        STCK(startTime);   // ??va aggiornato lo start time ??
-
-        LDST(exception_state);  // load old processor state
+        //STCK(startTime);   // ??va aggiornato lo start time ??
+        //klog_print("ho fatto STCK\n");
+        // if (exception_state->status & STATUS_KUc)
+        //     klog_print("non Kernel mode\n");
+        // breakpoint();
+        //exception_state->pc_epc += WORDLEN; //?????
+        //exception_state->reg_t9;
+        LDST((state_t *) BIOSDATAPAGE);  // load old processor state
         }//klog_print("ho fatto la LDST\n");
     }
     else{   // Non-Timer Interrupts
@@ -128,14 +114,18 @@ void manageNTInt(int line, int dev, state_t *exception_state){
         klog_print("it's a terminal\n");
         termreg_t* terminalRegister = (termreg_t*) devAddrBase;
         
-        if((terminalRegister->recv_status && 0xFF) != READY && terminalRegister->transm_status != BUSY){             // terminal READ
+        if((terminalRegister->recv_status != READY) && (terminalRegister->recv_status != BUSY)){             // in caso mettere 0xff
             status = terminalRegister->recv_status;     // Save off the status code from the device’s device register
             terminalRegister->recv_command = ACK;               // Acknowledge the interrupt    
             receive_interr = 1;
         }                       
-        else{                                                   // terminal WRITE
-            status = terminalRegister->recv_status;     // Save off the status code from the device’s device register
-            terminalRegister->transm_command = ACK;         // Acknowledge the interrupt 
+        // else{                                                   // terminal WRITE
+        //     status = terminalRegister->recv_status;     // Save off the status code from the device’s device register
+        //     terminalRegister->transm_command = ACK;         // Acknowledge the interrupt 
+        // }
+        if((terminalRegister->transm_status != BUSY) && (terminalRegister->transm_status != READY)){
+           status = terminalRegister->transm_status;
+           terminalRegister->transm_command = ACK; 
         }
 
         if (receive_interr == 1)
@@ -143,8 +133,8 @@ void manageNTInt(int line, int dev, state_t *exception_state){
 
     } 
     else {
-        devAddrBase->dtp.command = ACK;                     // Acknowledge the interrupt 
         status = devAddrBase->dtp.status;           // Save off the status code from the device’s device register
+        devAddrBase->dtp.command = ACK;                     // Acknowledge the interrupt 
     }
 
     // Semaphore associated with this (sub)device
@@ -162,10 +152,12 @@ void manageNTInt(int line, int dev, state_t *exception_state){
     // Perform a V operation on the Nucleus
     //dSemaphores[semAdd]++;
     
-    //pcb_PTR unblockedProcess = removeBlocked(semAdd);
     if(headBlocked(semAdd) == NULL) { 
         //(*semAdd)++;
-        LDST(exception_state);
+        if(currentProcess != NULL)  //nel dubbio
+            LDST(exception_state);
+        else
+            scheduler();
     }
     else{
         klog_print("dec sbC NTINT\n");
@@ -174,16 +166,8 @@ void manageNTInt(int line, int dev, state_t *exception_state){
         pcb_PTR unblockedProcess = removeBlocked(semAdd);
         unblockedProcess->p_s.reg_v0 = status;
 
-        cpu_t endTime;
-        STCK(endTime);
-        unblockedProcess->p_time += endTime - startTime;
-
-
-        if(unblockedProcess->p_prio == PROCESS_PRIO_LOW)
-            insertProcQ(&low_priority_queue, unblockedProcess); //and is placed in the Ready Queue
-        else
-            insertProcQ(&high_priority_queue, unblockedProcess); //and is placed in the Ready Queue
-        LDST(exception_state);
+        //set_time(unblockedProcess, startTime);
+        insert_to_readyq(unblockedProcess);
     }
     /*
     if (unblockedProcess == NULL){     //TODO: rimuovere in seguito

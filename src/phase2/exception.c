@@ -4,7 +4,6 @@ void exceptionHandler(){
     //klog_print("entro in exception handler..\n");
     processor_state = (state_t*) BIOSDATAPAGE;
     const unsigned int CAUSE_CODE = CAUSE_GET_EXCCODE(processor_state->cause);
-    // processor_state->pc_epc += WORD_SIZE;
     unsigned int cause = processor_state->cause & CAUSE_IP_MASK;
     breakpoint();
     // klog_print_hex(CAUSE_CODE);
@@ -31,23 +30,16 @@ void exceptionHandler(){
     }
 }
 
-
 void syscall_exception(state_t *exception_state){
     unsigned int a0 = exception_state->reg_a0;
     unsigned int a1 = exception_state->reg_a1;
-    //unsigned int a2 = processor_state->reg_a2;
-    //unsigned int a3 = processor_state->reg_a3;
-    // processor_state->pc_epc += WORD_SIZE;
     
     if ((exception_state->status & STATUS_KUp) != ALLOFF){ //il processo non e' in kernel mode
         klog_print("CAUSE PASSUP\n");
         setCAUSE(EXC_RI);
         breakpoint();
         pass_up_or_die(GENERALEXCEPT, exception_state);
-    } 
-
-    //processor_state->pc_epc += WORD_SIZE;
-    //processor_state->reg_t9 = processor_state->pc_epc;
+    }
 
     switch (a0){
     case CREATEPROCESS:
@@ -88,14 +80,14 @@ void syscall_exception(state_t *exception_state){
     }
 }
 
-void pass_up_or_die(int except_type, state_t *exceptio_state){    // check if similar to trap
+void pass_up_or_die(int except_type, state_t *exception_state){    // check if similar to trap
     klog_print("pass UP\n");
     breakpoint();
     if (currentProcess->p_supportStruct == NULL){
-        Terminate_Process_NSYS2(currentProcess->p_pid, processor_state);
+        Terminate_Process_NSYS2(0, processor_state);
     }else{
         // Copy the saved exception state from the BIOS Data Page to the correct sup exceptState field of the Current Process
-        currentProcess->p_supportStruct->sup_exceptState[except_type] = *exceptio_state;  
+        currentProcess->p_supportStruct->sup_exceptState[except_type] = *exception_state;  
         // Perform a LDCXT using the fields from the correct sup exceptContext field of the Current Process.
         context_t support = currentProcess->p_supportStruct->sup_exceptContext[except_type];
         breakpoint();
@@ -103,4 +95,3 @@ void pass_up_or_die(int except_type, state_t *exceptio_state){    // check if si
         LDCXT(support.stackPtr, support.status, support.pc);
     }
 }
-

@@ -34,10 +34,22 @@ devregarea_t* memInfo;
 
 void breakpoint(){}
 
-void memcpy(void *dest, const void *src, size_t n)
-{
+void memcpy(void *dest, const void *src, size_t n){
     for (size_t i = 0; i < n; i++)
     {
         ((char*)dest)[i] = ((char*)src)[i];
     }
+}
+
+void insert_to_readyq(pcb_PTR proc){
+    if(proc->p_prio == PROCESS_PRIO_LOW)
+        insertProcQ(&low_priority_queue, proc); //and is placed in the Ready Queue
+    else
+        insertProcQ(&high_priority_queue, proc); //and is placed in the Ready Queue
+}
+
+void set_time(pcb_PTR proc, cpu_t stime){
+    cpu_t endTime;
+    STCK(endTime);
+    proc->p_time += endTime - stime;
 }

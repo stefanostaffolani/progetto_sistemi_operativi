@@ -22,3 +22,5 @@ extern int dSemaphores[MAXSEM];
 
 void breakpoint();
 void memcpy(void *, const void *, size_t);
+void insert_to_readyq(pcb_t *);
+void set_time(pcb_t *, cpu_t);
