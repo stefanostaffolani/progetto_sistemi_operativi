@@ -141,10 +141,8 @@ void manageNTInt(int line, int dev, state_t *exception_state){
         sbCount--;
         pcb_PTR unblockedProcess = removeBlocked(semAdd);
         unblockedProcess->p_s.reg_v0 = status;
-
         insert_to_readyq(unblockedProcess);
     }
-
     if(currentProcess == NULL){          // if there was no process running
         klog_print("current proc is NULL");
         scheduler();
