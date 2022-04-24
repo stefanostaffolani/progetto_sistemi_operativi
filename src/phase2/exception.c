@@ -63,7 +63,7 @@ void syscall_exception(state_t *exception_state){
         DO_IO_Device_NSYS5(exception_state);
         break;
     case GETTIME:
-        klog_print("CPU STO CAZ?\n");
+        // klog_print("CPU STO CAZ?\n");
         NSYS6_Get_CPU_Time(exception_state);
         break;
     case CLOCKWAIT:
