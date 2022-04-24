@@ -50,6 +50,7 @@ void Terminate_Process_NSYS2(int pid, state_t *except_state) {
     if(pid == 0){
         outChild(currentProcess);
         //recursively terminate all progeny of the process
+        
         terminateProgeny(currentProcess);
         currentProcess = NULL;
     } else { //elimino il processo con il pid indicato
@@ -74,6 +75,11 @@ void terminateProgeny(pcb_t* removeMe){
 void terminateSingleProcess(pcb_t* removeMe){
     // klog_print("dec prC terminate\n");
     breakpoint();
+    klog_print("\n");
+    klog_print_hex(prCount);
+    klog_print("\n");
+    klog_print_hex(sbCount);
+    klog_print("\n");
     prCount--;
     if(removeMe->p_prio == PROCESS_PRIO_LOW)
         outProcQ(&low_priority_queue, removeMe);
@@ -91,6 +97,11 @@ void terminateSingleProcess(pcb_t* removeMe){
         //altrimenti non faccio niente (cambio solo i soft-blocked count) perche' quando succedera' l'interrupt il semaforo verra' V'ed
         outBlocked(removeMe);
     }
+    klog_print("\n");
+    klog_print_hex(prCount);
+    klog_print("\n");
+    klog_print_hex(sbCount);
+    klog_print("\n");
     freePcb(removeMe);
 }
 
