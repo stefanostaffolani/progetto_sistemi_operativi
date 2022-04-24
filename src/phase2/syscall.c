@@ -241,16 +241,20 @@ void NSYS6_Get_CPU_Time(state_t *except_state){
 
 void NSYS7_Wait_For_Clock(state_t *except_state){
     // klog_print("entro nella NSYS7...\n");
-    set_time(currentProcess, startTime);
-    insertBlocked(&dSemaphores[MAXSEM-1], currentProcess);
-    klog_print("inc sbC NSYS7\n");
-    breakpoint();
+
+    dSemaphores[MAXSEM-1] = 0;
     sbCount++;
-    except_state->pc_epc += WORD_SIZE;
-    memcpy(&(currentProcess->p_s), except_state, sizeof(state_t));
-    //currentProcess->p_s = *except_state;
-    klog_print("sto per chiamare lo scheduler\n");
-    scheduler();
+    Passeren_NSYS3(&(dSemaphores[MAXSEM-1]), except_state);
+
+    // set_time(currentProcess, startTime);
+    // klog_print("inc sbC NSYS7\n");
+    // breakpoint();
+    // except_state->pc_epc += WORD_SIZE;
+    // memcpy(&(currentProcess->p_s), except_state, sizeof(state_t));
+    // //currentProcess->p_s = *except_state;
+    // insertBlocked(&dSemaphores[MAXSEM-1], currentProcess);
+    // klog_print("sto per chiamare lo scheduler\n");
+    // scheduler();
 }
 
 void NSYS8_Get_SUPPORT_Data(state_t *except_state){

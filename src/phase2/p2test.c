@@ -407,11 +407,13 @@ void p3() {
     /* now let's check to see if we're really charge for CPU
        time correctly */
     cpu_t1 = SYSCALL(GETTIME, 0, 0, 0);
-
+    klog_print("fatta SYS6\n");
     for (i = 0; i < CLOCKLOOP; i++) {
+        print("sto per wait cock\n");
         SYSCALL(CLOCKWAIT, 0, 0, 0);
     }
-
+    print("sto per impazzire\n");
+    klog_print("sto per fare SYS6\n");
     cpu_t2 = SYSCALL(GETTIME, 0, 0, 0);
 
     if (cpu_t2 - cpu_t1 < (MINCLOCKLOOP / (*((cpu_t *)TIMESCALEADDR)))) {

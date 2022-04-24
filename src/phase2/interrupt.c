@@ -49,36 +49,32 @@ void manageInterr(int line, state_t *exception_state){
 
         /*Acknowledge the interrupt by loading the Interval Timer with a new
         value: 100 milliseconds. [Section 4.1.3-pops]*/
-        // if (exception_state->status & STATUS_KUc)
-        //     // klog_print("non Kernel mode\n");
-        // else
-        //     klog_print("si kernel mode\n");
-        // breakpoint();
+       
         LDIT(PSECOND);
-        // pcb_PTR unb = headBlocked(&(dSemaphores[MAXSEM-1]));
-        // if (unb == NULL)
-        //     klog_print("unb NULL\n");
-        // else
-        //     klog_print("unb not NULL\n");
-        // breakpoint();
+        
         /* Unblock ALL pcbs blocked on the Pseudo-clock semaphore */
         while(headBlocked(&(dSemaphores[MAXSEM - 1])) != NULL){
             klog_print("\ncosa accade?\n");
             pcb_PTR unblockedP = removeBlocked(&dSemaphores[MAXSEM - 1]);
             // klog_print("dec sbC while\n");
-            breakpoint();
+            //breakpoint();
             sbCount--;                              // decreasing number of sb processes
             insert_to_readyq(unblockedP);
         }
 
         dSemaphores[MAXSEM-1] = 0;
 
-        if(currentProcess == NULL)
+        if(currentProcess == NULL){
+            klog_print("chiamo scheduler\n");
+            breakpoint();
             scheduler();
+        }
+            
         else{
         // klog_print("LDST sbrago\n");
         // klog_print_hex(exception_state);
         // klog_print("ho finito interval timer\n");
+        klog_print("sto per fare LDST\n");
         breakpoint();
         LDST(exception_state);  // load old processor state
         }

@@ -23,8 +23,8 @@ void exceptionHandler(){
         pass_up_or_die(PGFAULTEXCEPT, processor_state);   // TLBexc...
         break;
     default:
-        klog_print("def1 PASSUP\n");
-        klog_print_hex(CAUSE_CODE);
+        //klog_print("def1 PASSUP\n");
+        //klog_print_hex(CAUSE_CODE);
         breakpoint();
         pass_up_or_die(GENERALEXCEPT, processor_state);   // program trap exc...
         break;
@@ -93,7 +93,7 @@ void syscall_exception(state_t *exception_state){
 }
 
 void pass_up_or_die(int except_type, state_t *exception_state){    // check if similar to trap
-    klog_print("pass UP\n");
+    //klog_print("pass UP\n");
     breakpoint();
     if (currentProcess->p_supportStruct == NULL){
         Terminate_Process_NSYS2(0, processor_state);
