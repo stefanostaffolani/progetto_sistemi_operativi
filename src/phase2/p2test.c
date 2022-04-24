@@ -476,11 +476,10 @@ void p4() {
     SYSCALL(PASSEREN, (int)&sem_synp4, 0, 0); /* wait for it       */
 
     print("p4 is OK\n");
-
     SYSCALL(VERHOGEN, (int)&sem_endp4, 0, 0); /* V(sem_endp4)          */
 
     SYSCALL(TERMPROCESS, 0, 0, 0); /* terminate p4      */
-
+            klog_print("arriva?\n");
     /* just did a SYS2, so should not get to this point */
     print("error: p4 didn't terminate\n");
     PANIC(); /* PANIC            */
