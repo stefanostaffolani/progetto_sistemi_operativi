@@ -45,11 +45,11 @@ debug.o: debug.c
 globals.o: globals.c
 	$(CC) $(CFLAGS) -c -o globals.o globals.c
 
-pcb.o: ../phase1/pcb.c
-	$(CC) $(CFLAGS) -c -o pcb.o ../phase1/pcb.c
+pcb.o: pcb.c
+	$(CC) $(CFLAGS) -c -o pcb.o pcb.c
 
-asl.o: ../phase1/asl.c
-	$(CC) $(CFLAGS)	-c -o asl.o ../phase1/asl.c
+asl.o: asl.c
+	$(CC) $(CFLAGS)	-c -o asl.o asl.c
 
 libumps.o: $(SDIR)/libumps.S
 	$(CC) $(CFLAGS) -c -o libumps.o $(SDIR)/libumps.S

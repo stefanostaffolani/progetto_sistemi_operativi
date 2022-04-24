@@ -14,6 +14,7 @@
 #endif
 
 #include "pandos_types.h"
+#include "debug.h"
 
 void initPcbs();
 

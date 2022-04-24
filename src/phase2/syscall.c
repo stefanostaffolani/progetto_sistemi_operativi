@@ -4,7 +4,11 @@ int check = 0;
 
 void Create_Process_NSYS1(state_t *except_state) {
 //alloco un PCB per il nuovo processo
+
+    klog_print("bella vezz\n");
     pcb_PTR newProcess = allocPcb();
+    klog_print("non me loasd");
+
     if(newProcess == NULL){     //new process cant be created, -1 in caller's v0 register
         except_state->reg_v0 = -1;
     } else {
@@ -66,7 +70,7 @@ void terminateProgeny(pcb_t* removeMe){
 }
 
 void terminateSingleProcess(pcb_t* removeMe){
-    klog_print("dec prC terminate\n");
+    // klog_print("dec prC terminate\n");
     breakpoint();
     prCount--;
     if(removeMe->p_prio == PROCESS_PRIO_LOW)
@@ -76,7 +80,7 @@ void terminateSingleProcess(pcb_t* removeMe){
     if(*(removeMe->p_semAdd) == 0){
         //capire se e' bloccato su un device semaphore o no, se non e' un device semaphore allora
         if (&(dSemaphores[0]) <= removeMe->p_semAdd && removeMe->p_semAdd <= &(dSemaphores[MAXSEM-1])){
-            klog_print("dec sbC terminate\n");
+            // klog_print("dec sbC terminate\n");
             breakpoint();
             sbCount--;
         }
@@ -142,16 +146,15 @@ void Verhogen_NSYS4(int *semAddr, state_t *except_state) {
 
 void DO_IO_Device_NSYS5(state_t *except_state) {
     
-    klog_print("entro nella DOIO\n");
+    // klog_print("entro nella DOIO\n");
     // read the interrupt line number in register a1
     int* cmdAddr = (int *) except_state->reg_a1;
     //read the device number in register a2
     int cmdValue = except_state->reg_a2;
-    klog_print("cmdValue is: ");
-    klog_print_hex(cmdValue);
+    // klog_print("cmdValue is: ");
+    // klog_print_hex(cmdValue);
     *cmdAddr = cmdValue;
     //I need the semaphore that the nucleus maintains for the I/O device indicated by the value in a1
-    klog_print("sto per prendere il semaforo\n");
 
     int devNum;
     int intLine;
@@ -180,15 +183,20 @@ void DO_IO_Device_NSYS5(state_t *except_state) {
 
     int sem_loc = devNum + (DEVPERINT * intLine);
     int *semAdd = &dSemaphores[sem_loc];
+
+    // klog_print("sem_loc: \n");
+    // klog_print_hex(sem_loc);
+    // klog_print("\n");
+
     //check = *semAdd;
     //perform a P operation and always block the Current Process on the ASL
-    klog_print("inc sbC DOIO\n");
-    breakpoint();
+    // klog_print("inc sbC DOIO\n");
     sbCount++;
     //except_state->pc_epc += WORD_SIZE;   
     //except_state->reg_t9 += WORD_SIZE;
     //currentProcess->p_s = *except_state;  perche' lo fa la Passeren
     *semAdd = 0;
+    // klog_print("arrivo effettivamente alla fine della funzione doio\n");
     Passeren_NSYS3(semAdd, except_state);
 }
 
@@ -200,7 +208,7 @@ void NSYS6_Get_CPU_Time(state_t *except_state){
 }
 
 void NSYS7_Wait_For_Clock(state_t *except_state){
-    klog_print("entro nella NSYS7...\n");
+    // klog_print("entro nella NSYS7...\n");
     set_time(currentProcess, startTime);
     insertBlocked(&dSemaphores[MAXSEM-1], currentProcess);
     klog_print("inc sbC NSYS7\n");

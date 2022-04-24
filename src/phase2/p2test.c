@@ -106,28 +106,32 @@ extern void p5mm();
 /* a procedure to print on terminal 0 */
 void print(char *msg) {
 
-    char     *s       = msg;
+    char     *s       = msg; 
     devregtr *base    = (devregtr *)(TERM0ADDR);
     devregtr *command = base + 3;
     devregtr  status;
-
+    // klog_print("prima della passeren test\n");
     SYSCALL(PASSEREN, (int)&sem_term_mut, 0, 0); /* P(sem_term_mut) */
-    klog_print("fatta la prima syscall(P) di print()\n");
+    // klog_print("fatta la prima syscall(P) di print()\n");
+
     while (*s != EOS) {
         devregtr value = PRINTCHR | (((devregtr)*s) << 8);
-        klog_print("sto per fare la DOIO\n");
+        // klog_print("sto per fare la DOIO\n");
         status         = SYSCALL(DOIO, (int)command, (int)value, 0);
-        klog_print("fatta la DOIO di print()\n");
-        klog_print_hex(status);
-        klog_print("\n");
+        // klog_print("fatta la DOIO di print()\n");
+        // klog_print_hex(status);
+        // klog_print("\n");
         if ((status & TERMSTATMASK) != RECVD) {
-            klog_print("\nsto per andare in panic(print)\n");
+            // klog_print("\nsto per andare in panic(print)\n");
             //breakpoint();
             PANIC();
         }
         s++;
     }
+    // klog_print("ma esco da sto ciclo nella print?!?!\n");
+    klog_print("sto per fare veroghen test:\n");
     SYSCALL(VERHOGEN, (int)&sem_term_mut, 0, 0); /* V(sem_term_mut) */
+    klog_print("fatta la veroghen\n");
 }
 
 

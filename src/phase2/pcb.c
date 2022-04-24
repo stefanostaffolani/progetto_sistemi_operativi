@@ -45,15 +45,19 @@ e restituisce l’elemento rimosso.
 
 pcb_PTR allocPcb(){
     if(list_empty(&pcbFree_h)){         // se la pcbFree è vuota 
+        klog_print("la lista è empty\n");
         return NULL;                    // restituisco NULL (non ci sono processi)
     }
+    klog_print("supero if \n");
     pcb_PTR tmp = container_of(pcbFree_h.next, pcb_t, p_list);      // tmp puntatore al primo processo nella lista di quelli liberi
     list_del(list_next(&pcbFree_h));                                // rimuovo il primo elemento di quelli liberi
     INIT_LIST_HEAD(&tmp->p_child);                                  // inizializzo i campi di tmp                       
     INIT_LIST_HEAD(&tmp->p_list);
+    klog_print("inizializzo un po di cose\n");
     tmp->p_parent = NULL;                                               
     INIT_LIST_HEAD(&tmp->p_sib);
     tmp->p_semAdd = NULL;
+    klog_print("prima del return\n");
     return tmp;                                                     // restituisco il primo processo nella lista di quelli liberi
 }
 

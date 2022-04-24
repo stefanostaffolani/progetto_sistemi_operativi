@@ -21,11 +21,11 @@ void interrupt_exception(unsigned int cause, state_t *exception_state){
 }
 
 void manageInterr(int line, state_t *exception_state){
-    klog_print("mannaggio un interrupt..\n");
+    // klog_print("mannaggio un interrupt..\n");
 
     if(line == 1){  // plt processor local timer interrupt
-        
-        klog_print("si tratta di un plt timer\n");
+        klog_print("plt_timer\n");
+        // klog_print("si tratta di un plt timer\n");
         /* Acknowledge the PLT interrupt by loading the timer with a new value.
         [Section 4.1.4-pops]*/ 
         setTIMER(0xFFFFFFFF);  //TODO: aggiusta
@@ -44,27 +44,28 @@ void manageInterr(int line, state_t *exception_state){
         scheduler();
     }
     else if(line == 2){  // reload interval timer
-        klog_print("si tratta di un reload interval timer\n");
+        klog_print("reload interval timer\n");
+        // klog_print("si tratta di un reload interval timer\n");
 
         /*Acknowledge the interrupt by loading the Interval Timer with a new
         value: 100 milliseconds. [Section 4.1.3-pops]*/
-        if (exception_state->status & STATUS_KUc)
-            klog_print("non Kernel mode\n");
-        else
-            klog_print("si kernel mode\n");
-        breakpoint();
+        // if (exception_state->status & STATUS_KUc)
+        //     // klog_print("non Kernel mode\n");
+        // else
+        //     klog_print("si kernel mode\n");
+        // breakpoint();
         LDIT(PSECOND);
-        pcb_PTR unb = headBlocked(&(dSemaphores[MAXSEM-1]));
-        if (unb == NULL)
-            klog_print("unb NULL\n");
-        else
-            klog_print("unb not NULL\n");
-        breakpoint();
+        // pcb_PTR unb = headBlocked(&(dSemaphores[MAXSEM-1]));
+        // if (unb == NULL)
+        //     klog_print("unb NULL\n");
+        // else
+        //     klog_print("unb not NULL\n");
+        // breakpoint();
         /* Unblock ALL pcbs blocked on the Pseudo-clock semaphore */
         while(headBlocked(&(dSemaphores[MAXSEM - 1])) != NULL){
-            klog_print("\ncosa accade?\n");
+            // klog_print("\ncosa accade?\n");
             pcb_PTR unblockedP = removeBlocked(&dSemaphores[MAXSEM - 1]);
-            klog_print("dec sbC while\n");
+            // klog_print("dec sbC while\n");
             breakpoint();
             sbCount--;                              // decreasing number of sb processes
             insert_to_readyq(unblockedP);
@@ -77,12 +78,13 @@ void manageInterr(int line, state_t *exception_state){
         else{
         // klog_print("LDST sbrago\n");
         // klog_print_hex(exception_state);
+        // klog_print("ho finito interval timer\n");
         breakpoint();
         LDST(exception_state);  // load old processor state
         }
     }
     else{   // Non-Timer Interrupts
-        klog_print("devicessss\n");
+        // klog_print("devicessss\n");
 
         devregarea_t *deviceRegs = (devregarea_t*) RAMBASEADDR;   
         unsigned int bit_check = 1;
@@ -105,20 +107,24 @@ void manageNTInt(int line, int dev, state_t *exception_state){
     unsigned int status;
 
     if (line == 7){ // if it's a terminal sub device
-        klog_print("it's a terminal\n");
+        // klog_print("it's a terminal\n");
         termreg_t* terminalRegister = (termreg_t*) devAddrBase;
-        
+        // klog_print("superato il casting\n");
+
         if((terminalRegister->recv_status != READY) && (terminalRegister->recv_status != BUSY)){             // in caso mettere 0xff
             status = terminalRegister->recv_status;     // Save off the status code from the device’s device register
             terminalRegister->recv_command = ACK;               // Acknowledge the interrupt    
             receive_interr = 1;
+            // klog_print("primo if\n");
         }                       
 
         if((terminalRegister->transm_status != BUSY) && (terminalRegister->transm_status != READY)){
            status = terminalRegister->transm_status;
            terminalRegister->transm_command = ACK; 
+        //    klog_print("secondo if\n");
         }
 
+        // klog_print("superati gli if\n");
         if (receive_interr == 1)
             dev += 8;
 
@@ -132,6 +138,11 @@ void manageNTInt(int line, int dev, state_t *exception_state){
     int sem_loc = dev + (DEVPERINT * (line-3));
     int *semAdd = &dSemaphores[sem_loc];
 
+
+    // klog_print("sem_loc: \n");
+    // klog_print_hex(sem_loc);
+    // klog_print("\n");
+
     // if(headBlocked(semAdd) == NULL) { 
     //     if(currentProcess != NULL){  //nel dubbio
     //         // klog_print("exc st\n");
@@ -142,22 +153,36 @@ void manageNTInt(int line, int dev, state_t *exception_state){
     //         scheduler();
     // }
     // else{
-    klog_print("dec sbC NTINT\n");
+    // klog_print("dec sbC NTINT\n");
+
+    // klog_print("arrivo alla fine di devices\n");
+
     breakpoint();
     pcb_PTR unblockedProcess = removeBlocked(semAdd);
+
+    // klog_print("unblockedProcess:\n");
+    // klog_print_hex(unblockedProcess->p_pid);
+    // klog_print("\n");
+
+    // klog_print("currentProcess:\n");
+    // klog_print_hex(currentProcess->p_pid);
+    // klog_print("\n");
+
     if(unblockedProcess != NULL){
+        // klog_print("aggiorno sbCount...\n");
         unblockedProcess->p_s.reg_v0 = status;
         sbCount--;
         insert_to_readyq(unblockedProcess);
-        // currentProcess = NULL;
+        currentProcess = NULL;
     }
    // }
     if(currentProcess == NULL){          // if there was no process running
-        klog_print("current proc is NULL");
+        // klog_print("current proc is NULL");
         scheduler();
     }
     else{
-        klog_print("NTINT LDST\n");
+        // klog_print("sto per fare LDST dei devices\n");
+        // klog_print("NTINT LDST\n");
         breakpoint();
         LDST(exception_state);  // load old processor state
     }

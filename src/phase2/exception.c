@@ -1,7 +1,7 @@
 #include "exception.h"
 
 void exceptionHandler(){
-    //klog_print("entro in exception handler..\n");
+    // klog_print("entro in exception handler..\n");
     processor_state = (state_t*) BIOSDATAPAGE;
     const unsigned int CAUSE_CODE = CAUSE_GET_EXCCODE(processor_state->cause);
     unsigned int cause = processor_state->cause & CAUSE_IP_MASK;
@@ -12,6 +12,7 @@ void exceptionHandler(){
         syscall_exception(processor_state);
         break;
     case EXC_INT:
+        // klog_print("è un interrupt\n");
         interrupt_exception(cause, processor_state);
         break;
     case EXC_MOD:
@@ -46,15 +47,19 @@ void syscall_exception(state_t *exception_state){
         Create_Process_NSYS1(exception_state);
         break;
     case TERMPROCESS:
+        // klog_print("è una terminate process\n");
         Terminate_Process_NSYS2(a1,exception_state);
         break;
     case PASSEREN:
+        // klog_print("è una passeren\n");
         Passeren_NSYS3((int *) a1,exception_state);
         break;
     case VERHOGEN:
+        // klog_print("è una veroghen\n");
         Verhogen_NSYS4((int *) a1,exception_state);
         break;
     case DOIO:
+        // klog_print("è una doio\n");
         DO_IO_Device_NSYS5(exception_state);
         break;
     case GETTIME:
@@ -73,7 +78,10 @@ void syscall_exception(state_t *exception_state){
         NSYS10_Yield(exception_state);
         break;
     default:
-        klog_print("def2 PASSUP\n");
+        // klog_print("a0: \n");
+        // klog_print_hex(a0);
+        // klog_print("\n");
+        // klog_print("def2 PASSUP\n");
         exception_state->cause = (exception_state->cause & ~CAUSE_EXCCODE_MASK) | (EXC_RI << CAUSE_EXCCODE_BIT);
         breakpoint();
         pass_up_or_die(GENERALEXCEPT, exception_state);
