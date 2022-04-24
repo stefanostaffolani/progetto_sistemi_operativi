@@ -55,8 +55,36 @@ void Terminate_Process_NSYS2(int pid, state_t *except_state) {
         currentProcess = NULL;
     } else { //elimino il processo con il pid indicato
         //klog_print_hex(pid);
-        breakpoint();
-        pcb_PTR proc = (pcb_PTR) pid;
+      
+        pcb_PTR proc;
+        pcb_PTR currentPcb;
+        semd_t* currentSemd;
+
+
+          /* search the pcb in the queue of low priority processes */
+        list_for_each_entry(currentPcb, &low_priority_queue, p_list) {
+            if (currentPcb->p_pid == pid) {
+                proc = currentPcb;
+            }
+        }
+
+        /* search the pcb in the queue of high priority processes */
+        list_for_each_entry(currentPcb, &high_priority_queue, p_list) {
+            if (currentPcb->p_pid == pid) {
+                 proc = currentPcb;
+            }
+        }
+
+        for(int i = 0; i < MAXSEM-1; i++){
+            list_for_each_entry(currentPcb, &(dSemaphores[i].s_procq), p_list) {
+                if (currentPcb->p_pid == pid) {
+                    proc = currentPcb;
+                }
+            }
+        }
+        
+    
+
         outChild(proc);
         terminateProgeny(proc);
         proc = NULL;
