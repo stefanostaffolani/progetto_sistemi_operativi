@@ -255,7 +255,11 @@ void test() {
 
     SYSCALL(VERHOGEN, (int)&sem_startp2, 0, 0); /* V(sem_startp2)   */
 
+    //print("V1\n");
+
     SYSCALL(PASSEREN, (int)&sem_endp2, 0, 0); /* P(sem_endp2)     */
+
+    print("P2\n");
 
     /* make sure we really blocked */
     if (p1p2synch == 0) {

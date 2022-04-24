@@ -23,6 +23,6 @@ void NSYS7_Wait_For_Clock(state_t *);
 
 void NSYS8_Get_SUPPORT_Data(state_t *);
 
-void NSYS9_Get_Process_ID(state_t *);
+void NSYS9_Get_Process_ID(state_t *, int);
 
 void NSYS10_Yield(state_t *);

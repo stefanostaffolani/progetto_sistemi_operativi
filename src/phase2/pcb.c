@@ -56,6 +56,7 @@ pcb_PTR allocPcb(){
     klog_print("inizializzo un po di cose\n");
     tmp->p_parent = NULL;                                               
     INIT_LIST_HEAD(&tmp->p_sib);
+    tmp->p_pid = 0;
     tmp->p_semAdd = NULL;
     klog_print("prima del return\n");
     return tmp;                                                     // restituisco il primo processo nella lista di quelli liberi

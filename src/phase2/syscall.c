@@ -7,22 +7,24 @@ void Create_Process_NSYS1(state_t *except_state) {
 
     klog_print("bella vezz\n");
     pcb_PTR newProcess = allocPcb();
-    klog_print("non me loasd");
+    klog_print("non me loasd\n");
 
     if(newProcess == NULL){     //new process cant be created, -1 in caller's v0 register
         except_state->reg_v0 = -1;
     } else {
         //id del processo appena creato e' l'inidirizzo della struttura pcb_t corrispondente
         newProcess->p_pid = (memaddr) newProcess;
-        //klog_print_hex(newProcess->p_pid);
+        klog_print_hex(newProcess->p_pid);
         //breakpoint();
         //to say the new process could be created
         processor_state->reg_v0 = newProcess->p_pid;
         //take the initial state from the a1 register
-        newProcess->p_s = *((state_t*) except_state->reg_a1);
+        memcpy(&(newProcess->p_s), ((state_t *) except_state->reg_a1), sizeof(state_t));
+        //newProcess->p_s = *((state_t*) except_state->reg_a1);
         //take the process priority from the a2 register
         newProcess->p_prio = except_state->reg_a2;
         //take the pointer to a structure containing the additional Support Level fields from the a3 register
+        //memcpy(&(newProcess->p_supportStruct), ((support_t*) except_state->reg_a3), sizeof(support_t));
         newProcess->p_supportStruct = (support_t*) except_state->reg_a3;
         //newly populated pcb is placed on the Ready Queue...
         insert_to_readyq(newProcess);
@@ -34,7 +36,7 @@ void Create_Process_NSYS1(state_t *except_state) {
         //this process is in the "ready" state
         newProcess->p_semAdd = NULL;
         //Process Count is incremented by one
-        klog_print("inc prC NSYS1\n");
+        klog_print("\ninc prC NSYS1\n");
         breakpoint();
         prCount++;
     }
@@ -227,12 +229,14 @@ void NSYS8_Get_SUPPORT_Data(state_t *except_state){
     LDST(except_state);
 }
 
-void NSYS9_Get_Process_ID(state_t *except_state){
-    if(currentProcess->p_parent == 0){
+void NSYS9_Get_Process_ID(state_t *except_state, int parent){
+    if (parent){
+        if(currentProcess->p_parent == NULL)
+            except_state->reg_v0 = 0;
+        else
+            except_state->reg_v0 = currentProcess->p_parent->p_pid;
+    }else{
         except_state->reg_v0 = currentProcess->p_pid;
-    }
-    else{
-        except_state->reg_v0 = currentProcess->p_parent->p_pid;
     }
     except_state->pc_epc += WORD_SIZE;
     LDST(except_state);

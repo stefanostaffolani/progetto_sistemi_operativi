@@ -72,7 +72,7 @@ void syscall_exception(state_t *exception_state){
         NSYS8_Get_SUPPORT_Data(exception_state);
         break;
     case GETPROCESSID:
-        NSYS9_Get_Process_ID(exception_state);
+        NSYS9_Get_Process_ID(exception_state, a1);
         break;
     case YIELD:
         NSYS10_Yield(exception_state);
