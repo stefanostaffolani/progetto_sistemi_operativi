@@ -1,5 +1,5 @@
 #include "scheduler.h"
-
+//extern int toprint;
 void scheduler(){
     // klog_print("entro nello scheduler...\n");
     if(!emptyProcQ(&high_priority_queue)){  // la coda ad alta priorita' non e' vuota
@@ -13,7 +13,8 @@ void scheduler(){
         //TODO:Load 5 milliseconds on the PLT. [Section 4.1.4-pops], maybe done
         setTIMER(TIMESLICE * (*((cpu_t*) TIMESCALEADDR)));
         STCK(startTime);
-        // klog_print("secondo caso scheduler\n");
+        // if(toprint)
+        //     klog_print("secondo caso scheduler\n");
         //processor_state->pc_epc += WORDLEN;
         breakpoint();
         LDST(&(currentProcess->p_s));
@@ -24,7 +25,8 @@ void scheduler(){
         else if (prCount > 0 && sbCount > 0){   // aspetta...
             //TODO: set STATUS reg for enabling interrupts and disable PLT, maybe done
             //setTIMER(0xFFFFFFFF);  
-            // klog_print("sto per fare la wait\n");
+            //if (toprint)
+            //klog_print("sto per fare la wait\n");
             setSTATUS(ALLOFF | IECON | IMON);   //interrupts on and PLT off
             WAIT();
             // klog_print("fatta la wait\n");

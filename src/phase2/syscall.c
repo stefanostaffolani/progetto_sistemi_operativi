@@ -1,6 +1,6 @@
 #include "syscall.h"
 
-int check = 0;
+//int check = 0;
 
 void Create_Process_NSYS1(state_t *except_state) {
 //alloco un PCB per il nuovo processo
@@ -132,6 +132,7 @@ void Passeren_NSYS3(int *semAddr, state_t *except_state) {
         //currentProcess->p_s = *except_state;
         insertBlocked(semAddr, currentProcess);
         currentProcess = NULL;
+        //klog_print("passeren scheduler");
         scheduler();
     }
     else if(headBlocked(semAddr) == NULL) {
@@ -244,8 +245,10 @@ void NSYS7_Wait_For_Clock(state_t *except_state){
 
     dSemaphores[MAXSEM-1] = 0;
     sbCount++;
+    klog_print("NSYS7 passeren\n");
     Passeren_NSYS3(&(dSemaphores[MAXSEM-1]), except_state);
-
+    scheduler();
+    //scheduler();
     // set_time(currentProcess, startTime);
     // klog_print("inc sbC NSYS7\n");
     // breakpoint();

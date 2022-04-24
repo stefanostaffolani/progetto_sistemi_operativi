@@ -22,6 +22,8 @@
 
 typedef unsigned int devregtr;
 
+extern int toprint;
+
 /* hardware constants */
 #define PRINTCHR 2
 #define RECVD    5
@@ -272,7 +274,7 @@ void test() {
 
     SYSCALL(PASSEREN, (int)&sem_endp3, 0, 0); /* P(sem_endp3)     */
 
-    SYSCALL(CREATEPROCESS, (int)&hp_p1state, PROCESS_PRIO_HIGH, (int)NULL);
+    //SYSCALL(CREATEPROCESS, (int)&hp_p1state, PROCESS_PRIO_HIGH, (int)NULL);
     SYSCALL(CREATEPROCESS, (int)&hp_p2state, PROCESS_PRIO_HIGH, (int)NULL);
 
     p4pid = SYSCALL(CREATEPROCESS, (int)&p4state, PROCESS_PRIO_LOW, (int)NULL); /* start p4     */
@@ -394,7 +396,7 @@ void p3() {
 
     time1 = 0;
     time2 = 0;
-
+    
     /* loop until we are delayed at least half of clock V interval */
     while (time2 - time1 < (CLOCKINTERVAL >> 1)) {
         STCK(time1); /* time of day     */
@@ -409,10 +411,10 @@ void p3() {
     cpu_t1 = SYSCALL(GETTIME, 0, 0, 0);
     klog_print("fatta SYS6\n");
     for (i = 0; i < CLOCKLOOP; i++) {
-        print("sto per wait cock\n");
         SYSCALL(CLOCKWAIT, 0, 0, 0);
+        //print("fatta wait cock (cicle)\n");
     }
-    print("sto per impazzire\n");
+    //print("sto per impazzire\n");
     klog_print("sto per fare SYS6\n");
     cpu_t2 = SYSCALL(GETTIME, 0, 0, 0);
 

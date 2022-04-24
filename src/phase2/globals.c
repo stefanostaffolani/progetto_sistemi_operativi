@@ -25,7 +25,7 @@ Tail pointer to a queue of pcbs that are in the
 Pointer to the pcb that is in the “running” state,
 i.e. the current executing process.*/
 pcb_PTR currentProcess; 
-
+int toprint = 0;
 // inizializzare i vari semafori
 passupvector_t* PassUpVector;
 

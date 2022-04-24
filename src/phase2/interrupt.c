@@ -49,7 +49,7 @@ void manageInterr(int line, state_t *exception_state){
 
         /*Acknowledge the interrupt by loading the Interval Timer with a new
         value: 100 milliseconds. [Section 4.1.3-pops]*/
-       
+        
         LDIT(PSECOND);
         
         /* Unblock ALL pcbs blocked on the Pseudo-clock semaphore */
