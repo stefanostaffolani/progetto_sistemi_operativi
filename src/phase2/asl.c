@@ -4,7 +4,7 @@ static semd_t semd_table[MAXPROC];
 
 static struct list_head semdFree_h;
 
-static struct list_head semd_h;
+struct list_head semd_h;
 
 /*
 Viene inserito il PCB puntato da p nella coda dei

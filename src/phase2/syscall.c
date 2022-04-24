@@ -1,5 +1,7 @@
 #include "syscall.h"
 
+extern struct list_head semd_h;
+
 //int check = 0;
 
 void Create_Process_NSYS1(state_t *except_state) {
@@ -58,32 +60,40 @@ void Terminate_Process_NSYS2(int pid, state_t *except_state) {
       
         pcb_PTR proc;
         pcb_PTR currentPcb;
-        semd_t* currentSemd;
+        semd_PTR currentSemd;
 
 
-          /* search the pcb in the queue of low priority processes */
         list_for_each_entry(currentPcb, &low_priority_queue, p_list) {
             if (currentPcb->p_pid == pid) {
                 proc = currentPcb;
             }
         }
 
-        /* search the pcb in the queue of high priority processes */
         list_for_each_entry(currentPcb, &high_priority_queue, p_list) {
             if (currentPcb->p_pid == pid) {
                  proc = currentPcb;
             }
         }
 
-        for(int i = 0; i < MAXSEM-1; i++){
-            list_for_each_entry(currentPcb, &(dSemaphores[i].s_procq), p_list) {
+
+
+        list_for_each_entry(currentSemd, &semd_h, s_link) {
+            list_for_each_entry(currentPcb, &currentSemd->s_procq, p_list) {
                 if (currentPcb->p_pid == pid) {
-                    proc = currentPcb;
+                    return currentPcb;
                 }
             }
         }
+
+
+        // for(int i = 0; i < MAXSEM-1; i++){
+        //     list_for_each_entry(currentPcb, &dSemaphores[i], p_list) {
+        //         if (currentPcb->p_pid == pid) {
+        //             proc = currentPcb;
+        //         }
+        //     }
+        // }
         
-    
 
         outChild(proc);
         terminateProgeny(proc);
