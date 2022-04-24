@@ -75,23 +75,40 @@ void terminateSingleProcess(pcb_t* removeMe){
     // klog_print("dec prC terminate\n");
     breakpoint();
     prCount--;
+    pcb_PTR proc;
     if(removeMe->p_prio == PROCESS_PRIO_LOW)
-        outProcQ(&low_priority_queue, removeMe);
+        proc = outProcQ(&low_priority_queue, removeMe);
     else
-        outProcQ(&high_priority_queue, removeMe);
-    if(*(removeMe->p_semAdd) == 0){
-        //capire se e' bloccato su un device semaphore o no, se non e' un device semaphore allora
-        if (&(dSemaphores[0]) <= removeMe->p_semAdd && removeMe->p_semAdd <= &(dSemaphores[MAXSEM-1])){
+        proc = outProcQ(&high_priority_queue, removeMe);
+    if (proc == NULL){   // non e' sulla readyqueue
+        if ((&(dSemaphores[0]) <= removeMe->p_semAdd) && (removeMe->p_semAdd <= &(dSemaphores[MAXSEM-1]))){
             // klog_print("dec sbC terminate\n");
-            breakpoint();
-            sbCount--;
-        }
-        else
-            (*(removeMe->p_semAdd))++;
-        //altrimenti non faccio niente (cambio solo i soft-blocked count) perche' quando succedera' l'interrupt il semaforo verra' V'ed
-        outBlocked(removeMe);
+            // semd_PTR sm = container_of(removeMe->p_semAdd, semd_t, s_key);
+            // proc = outProcQ(sm->s_procq, removeMe);
+            proc = outBlocked(removeMe);
+            //breakpoint();
+            if (proc != NULL)
+                sbCount--;
+        }else
+            *(removeMe->p_semAdd)++;
     }
     freePcb(removeMe);
+
+
+
+    // if(*(removeMe->p_semAdd) == 0){
+    //     //capire se e' bloccato su un device semaphore o no, se non e' un device semaphore allora
+    //     if (&(dSemaphores[0]) <= removeMe->p_semAdd && removeMe->p_semAdd <= &(dSemaphores[MAXSEM-1])){
+    //         // klog_print("dec sbC terminate\n");
+    //         breakpoint();
+    //         sbCount--;
+    //     }
+    //     else
+    //         (*(removeMe->p_semAdd))++;
+    //     //altrimenti non faccio niente (cambio solo i soft-blocked count) perche' quando succedera' l'interrupt il semaforo verra' V'ed
+    //     outBlocked(removeMe);
+    // }
+    // freePcb(removeMe);
 }
 
 void Passeren_NSYS3(int *semAddr, state_t *except_state) {
