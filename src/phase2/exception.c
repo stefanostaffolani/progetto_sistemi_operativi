@@ -63,18 +63,22 @@ void syscall_exception(state_t *exception_state){
         DO_IO_Device_NSYS5(exception_state);
         break;
     case GETTIME:
+        klog_print("CPU STO CAZ?\n");
         NSYS6_Get_CPU_Time(exception_state);
         break;
     case CLOCKWAIT:
+        klog_print("wait for cock?\n");
         NSYS7_Wait_For_Clock(exception_state);
         break;
     case GETSUPPORTPTR:
+        klog_print("get support data?\n");
         NSYS8_Get_SUPPORT_Data(exception_state);
         break;
     case GETPROCESSID:
         NSYS9_Get_Process_ID(exception_state, a1);
         break;
     case YIELD:
+        klog_print("yeld?\n");
         NSYS10_Yield(exception_state);
         break;
     default:

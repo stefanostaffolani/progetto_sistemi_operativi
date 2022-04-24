@@ -30,7 +30,7 @@ void scheduler(){
             // klog_print("fatta la wait\n");
             breakpoint();
         }else if (prCount > 0 && sbCount == 0){   // Deadlock
-            // klog_print("si rompe ultimo ramo sched\n");
+            klog_print("si rompe ultimo ramo sched\n");
             breakpoint();
             PANIC();
         }

@@ -24,7 +24,7 @@ void manageInterr(int line, state_t *exception_state){
     // klog_print("mannaggio un interrupt..\n");
 
     if(line == 1){  // plt processor local timer interrupt
-        klog_print("plt_timer\n");
+        // klog_print("plt_timer\n");
         // klog_print("si tratta di un plt timer\n");
         /* Acknowledge the PLT interrupt by loading the timer with a new value.
         [Section 4.1.4-pops]*/ 
@@ -63,7 +63,7 @@ void manageInterr(int line, state_t *exception_state){
         // breakpoint();
         /* Unblock ALL pcbs blocked on the Pseudo-clock semaphore */
         while(headBlocked(&(dSemaphores[MAXSEM - 1])) != NULL){
-            // klog_print("\ncosa accade?\n");
+            klog_print("\ncosa accade?\n");
             pcb_PTR unblockedP = removeBlocked(&dSemaphores[MAXSEM - 1]);
             // klog_print("dec sbC while\n");
             breakpoint();
@@ -173,7 +173,7 @@ void manageNTInt(int line, int dev, state_t *exception_state){
         unblockedProcess->p_s.reg_v0 = status;
         sbCount--;
         insert_to_readyq(unblockedProcess);
-        currentProcess = NULL;
+        //currentProcess = NULL;
     }
    // }
     if(currentProcess == NULL){          // if there was no process running

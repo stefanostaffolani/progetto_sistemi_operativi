@@ -5,9 +5,9 @@ int check = 0;
 void Create_Process_NSYS1(state_t *except_state) {
 //alloco un PCB per il nuovo processo
 
-    klog_print("bella vezz\n");
+    // klog_print("bella vezz\n");
     pcb_PTR newProcess = allocPcb();
-    klog_print("non me loasd\n");
+    // klog_print("non me loasd\n");
 
     if(newProcess == NULL){     //new process cant be created, -1 in caller's v0 register
         except_state->reg_v0 = -1;
@@ -103,6 +103,7 @@ void Passeren_NSYS3(int *semAddr, state_t *except_state) {
         memcpy(&(currentProcess->p_s), except_state, sizeof(state_t));
         //currentProcess->p_s = *except_state;
         insertBlocked(semAddr, currentProcess);
+        currentProcess = NULL;
         scheduler();
     }
     else if(headBlocked(semAddr) == NULL) {
@@ -129,6 +130,7 @@ void Verhogen_NSYS4(int *semAddr, state_t *except_state) {
         except_state->pc_epc += WORD_SIZE;
         memcpy(&(currentProcess->p_s), except_state, sizeof(state_t));
         //currentProcess->p_s = *except_state;
+        currentProcess = NULL;
         scheduler();
     }
     else if(headBlocked(semAddr) == NULL) { 

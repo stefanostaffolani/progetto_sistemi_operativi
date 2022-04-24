@@ -122,16 +122,16 @@ void print(char *msg) {
         // klog_print_hex(status);
         // klog_print("\n");
         if ((status & TERMSTATMASK) != RECVD) {
-            // klog_print("\nsto per andare in panic(print)\n");
+            klog_print("\nsto per andare in panic(print)\n");
             //breakpoint();
             PANIC();
         }
         s++;
     }
     // klog_print("ma esco da sto ciclo nella print?!?!\n");
-    klog_print("sto per fare veroghen test:\n");
+    // klog_print("sto per fare veroghen test:\n");
     SYSCALL(VERHOGEN, (int)&sem_term_mut, 0, 0); /* V(sem_term_mut) */
-    klog_print("fatta la veroghen\n");
+    // klog_print("fatta la veroghen\n");
 }
 
 
@@ -255,7 +255,7 @@ void test() {
 
     SYSCALL(VERHOGEN, (int)&sem_startp2, 0, 0); /* V(sem_startp2)   */
 
-    //print("V1\n");
+    print("V1\n");
 
     SYSCALL(PASSEREN, (int)&sem_endp2, 0, 0); /* P(sem_endp2)     */
 
