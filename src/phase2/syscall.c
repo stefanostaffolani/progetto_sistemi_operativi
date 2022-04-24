@@ -280,6 +280,8 @@ void NSYS9_Get_Process_ID(state_t *except_state, int parent){
 }
 
 void NSYS10_Yield(state_t *except_state){
+    except_state->pc_epc += WORD_SIZE;
+    memcpy(&(currentProcess->p_s), except_state, sizeof(state_t));
     insert_to_readyq(currentProcess);
     set_time(currentProcess, startTime);
     scheduler();
