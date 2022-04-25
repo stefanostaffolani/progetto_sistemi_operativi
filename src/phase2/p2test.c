@@ -524,6 +524,7 @@ void p5gen() {
         default: print("other program trap\n");
     }
 
+    // klog_print("wow vediamo se vado qua p5gen\n");
     LDST(&(pFiveSupport.sup_exceptState[GENERALEXCEPT]));
 }
 

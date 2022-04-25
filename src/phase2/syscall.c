@@ -17,7 +17,8 @@ void Create_Process_NSYS1(state_t *except_state) {
         except_state->reg_v0 = -1;
     } else {
         //id del processo appena creato e' l'inidirizzo della struttura pcb_t corrispondente
-        newProcess->p_pid = currentProcess->p_pid + 1;
+        // newProcess->p_pid = currentProcess->p_pid + 1;
+        newProcess->p_pid = (memaddr) newProcess;
         klog_print_hex(newProcess->p_pid);
         //breakpoint();
         //to say the new process could be created
@@ -44,6 +45,11 @@ void Create_Process_NSYS1(state_t *except_state) {
         breakpoint();
         prCount++;
     }
+
+     klog_print("\nsto creando il processo  ");
+    klog_print_hex(newProcess->p_pid);
+    klog_print("\n");
+
     //control returned to the Current Process
     except_state->pc_epc += WORD_SIZE;
     LDST(except_state);
@@ -54,10 +60,9 @@ void Terminate_Process_NSYS2(int pid, state_t *except_state) {
     except_state->pc_epc += WORD_SIZE;
     if(pid == 0){
         //outChild(currentProcess);
-        klog_print("stra zero\n");
+        // klog_print("stra zero\n");
         //recursively terminate all progeny of the process        
         terminateProgeny(currentProcess);
-        currentProcess = NULL;
     } else { //elimino il processo con il pid indicato
         //klog_print_hex(pid);
         
@@ -88,10 +93,12 @@ void Terminate_Process_NSYS2(int pid, state_t *except_state) {
 
         //outChild(proc);
         terminateProgeny(proc);
-        proc = NULL;
+        // proc = NULL;
     }
-    klog_print("NSYS2 pre sched\n");
+    // klog_print("NSYS2 pre sched\n");
     br3();
+
+            currentProcess = NULL;
 
     scheduler();
 }
