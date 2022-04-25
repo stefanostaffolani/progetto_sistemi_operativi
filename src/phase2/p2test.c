@@ -120,7 +120,6 @@ void print(char *msg) {
         status         = SYSCALL(DOIO, (int)command, (int)value, 0);
 
         if ((status & TERMSTATMASK) != RECVD) {
-            klog_print("\nsto per andare in panic(print)\n");
             PANIC();
         }
         s++;
@@ -398,13 +397,10 @@ void p3() {
     /* now let's check to see if we're really charge for CPU
        time correctly */
     cpu_t1 = SYSCALL(GETTIME, 0, 0, 0);
-    klog_print("fatta SYS6\n");
     for (i = 0; i < CLOCKLOOP; i++) {
         SYSCALL(CLOCKWAIT, 0, 0, 0);
-        //print("fatta wait cock (cicle)\n");
     }
-    //print("sto per impazzire\n");
-    klog_print("sto per fare SYS6\n");
+
     cpu_t2 = SYSCALL(GETTIME, 0, 0, 0);
 
     if (cpu_t2 - cpu_t1 < (MINCLOCKLOOP / (*((cpu_t *)TIMESCALEADDR)))) {
@@ -468,9 +464,7 @@ void p4() {
 
     SYSCALL(VERHOGEN, (int)&sem_endp4, 0, 0); /* V(sem_endp4)          */
 
-    klog_print("prima del termPROC\n");
     SYSCALL(TERMPROCESS, 0, 0, 0); /* terminate p4      */
-    klog_print("dopo il termPROC\n");
 
     /* just did a SYS2, so should not get to this point */
     print("error: p4 didn't terminate\n");
@@ -513,7 +507,6 @@ void p5gen() {
         default: print("other program trap\n");
     }
 
-    // klog_print("wow vediamo se vado qua p5gen\n");
     LDST(&(pFiveSupport.sup_exceptState[GENERALEXCEPT]));
 }
 
