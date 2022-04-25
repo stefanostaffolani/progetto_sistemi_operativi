@@ -15,40 +15,17 @@ int prCount;  // Process Count
 the “blocked” state due to an I/O or timer request*/
 int sbCount; // soft-block Count
 
-/* 
-Tail pointer to a queue of pcbs that are in the
-“ready” state.*/
-// extern struct list_head low_priority_queue;
-// extern struct list_head high_priority_queue;
 
 /*
 Pointer to the pcb that is in the “running” state,
 i.e. the current executing process.*/
 pcb_PTR currentProcess; 
-int toprint = 0;
+
 // inizializzare i vari semafori
 passupvector_t* PassUpVector;
 
 /* memory info to calculate ramtop*/
 devregarea_t* memInfo;
-
-void breakpoint(){}
-
-void br3(){}
-
-// void memcpy(state_t *dest, state_t *src){
-//     dest->cause = src->cause;
-//     dest->entry_hi = src->entry_hi;
-//     for(int i = 0; i < 31; i++)
-//         dest->gpr[i] = src->gpr[i];
-//     // dest->gpr ^= src->gpr;
-//     // src->gpr ^= dest->gpr;
-//     // dest->gpr ^= src->gpr;
-//     dest->hi = src->hi;
-//     dest->lo = src->lo;
-//     dest->pc_epc = src->pc_epc;
-//     dest->status = src->status;
-// }
 
 void memcpy(void *dest, const void *src, size_t n){
     for (size_t i = 0; i < n; i++){
