@@ -81,13 +81,13 @@ void manageNTInt(int line, int dev, state_t *exception_state){
         termreg_t* terminalRegister = (termreg_t*) devAddrBase;
 
         if((terminalRegister->recv_status != READY) && (terminalRegister->recv_status != BUSY)){            
-            status = terminalRegister->recv_status;     // Save off the status code from the device’s device register
+            status = terminalRegister->recv_status;             // Save off the status code from the device’s device register
             terminalRegister->recv_command = ACK;               // Acknowledge the interrupt    
             receive_interr = 1;
         }                       
 
         if((terminalRegister->transm_status != BUSY) && (terminalRegister->transm_status != READY)){
-           status = terminalRegister->transm_status;
+           status = terminalRegister->transm_status;            
            terminalRegister->transm_command = ACK; 
         }
 
@@ -96,7 +96,7 @@ void manageNTInt(int line, int dev, state_t *exception_state){
 
     } 
     else {
-        status = devAddrBase->dtp.status;           // Save off the status code from the device’s device register
+        status = devAddrBase->dtp.status;                   // Save off the status code from the device’s device register
         devAddrBase->dtp.command = ACK;                     // Acknowledge the interrupt 
     }
 
@@ -116,6 +116,6 @@ void manageNTInt(int line, int dev, state_t *exception_state){
         scheduler();
     }
     else{
-        LDST(exception_state);  // load old processor state
+        LDST(exception_state);           // load old processor state
     }
 }

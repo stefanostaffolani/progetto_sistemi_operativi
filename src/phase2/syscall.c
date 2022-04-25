@@ -53,19 +53,22 @@ void Terminate_Process_NSYS2(int pid, state_t *except_state) {
         pcb_PTR currentPcb;
         semd_PTR currentSemd;
 
-
+        // scorro la low priority queue e cerco il processo con p_pid uguale a pid
         list_for_each_entry(currentPcb, &low_priority_queue, p_list) {
             if (currentPcb->p_pid == pid) {
                 proc = currentPcb;
             }
         }
 
+        // scorro la high priority queue e cerco il processo con p_pid uguale a pid
         list_for_each_entry(currentPcb, &high_priority_queue, p_list) {
             if (currentPcb->p_pid == pid) {
                  proc = currentPcb;
             }
         }
 
+        // scorro i semafori e
+        // scorro i processi bloccati sui semafori e cerco quello con il p_pid uguale a pid
         list_for_each_entry(currentSemd, &semd_h, s_link) {
             list_for_each_entry(currentPcb, &currentSemd->s_procq, p_list) {
                 if (currentPcb->p_pid == pid) {
@@ -85,11 +88,13 @@ void Terminate_Process_NSYS2(int pid, state_t *except_state) {
 void terminateProgeny(pcb_t* removeMe){
     if (removeMe == NULL) return;
 
+    // scorro i processi figli di removeMe
     pcb_PTR p;
     list_for_each_entry(p, &removeMe->p_child, p_sib){
-        terminateProgeny(p);
+        terminateProgeny(p);    
     }
 
+    // elimino il singolo processo
     terminateSingleProcess(removeMe);
 }
 
@@ -98,11 +103,15 @@ void terminateSingleProcess(pcb_t* removeMe){
     prCount--;
     int *sem = removeMe->p_semAdd;
     pcb_PTR proc;
+
+    // cecrco il processo nella ready queue
     if(removeMe->p_prio == PROCESS_PRIO_LOW)
         proc = outProcQ(&low_priority_queue, removeMe);
     else
         proc = outProcQ(&high_priority_queue, removeMe);
-    if (proc == NULL){   // non e' sulla readyqueue
+
+    // se proc è null allora è bloccato su un semaforo (non era nella ready queue)
+    if (proc == NULL){   
         proc = outBlocked(removeMe);
         if (proc != NULL){
             if ((&(dSemaphores[0]) <= sem) && (sem <= &(dSemaphores[MAXSEM-1]))){
