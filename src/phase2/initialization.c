@@ -38,7 +38,7 @@ int main(){
     //klog_print("init_3\n");
 
     initPcb->p_prio = PROCESS_PRIO_LOW;
-    initPcb->p_pid = (memaddr) initPcb;
+    initPcb->p_pid = 1;
     //klog_print_hex(initPcb->p_pid);
     initPcb->p_time = 0;
     initPcb->p_semAdd = NULL;

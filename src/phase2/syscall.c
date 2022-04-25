@@ -2,6 +2,8 @@
 
 extern struct list_head semd_h;
 
+void br2(){}
+
 //int check = 0;
 
 void Create_Process_NSYS1(state_t *except_state) {
@@ -15,7 +17,7 @@ void Create_Process_NSYS1(state_t *except_state) {
         except_state->reg_v0 = -1;
     } else {
         //id del processo appena creato e' l'inidirizzo della struttura pcb_t corrispondente
-        newProcess->p_pid = (memaddr) newProcess;
+        newProcess->p_pid = currentProcess->p_pid + 1;
         klog_print_hex(newProcess->p_pid);
         //breakpoint();
         //to say the new process could be created
@@ -49,15 +51,15 @@ void Create_Process_NSYS1(state_t *except_state) {
 
 /* NSYS2 */
 void Terminate_Process_NSYS2(int pid, state_t *except_state) {
+    except_state->pc_epc += WORD_SIZE;
     if(pid == 0){
-        outChild(currentProcess);
-        //recursively terminate all progeny of the process
-        
+        //outChild(currentProcess);
+        //recursively terminate all progeny of the process        
         terminateProgeny(currentProcess);
         currentProcess = NULL;
     } else { //elimino il processo con il pid indicato
         //klog_print_hex(pid);
-      
+        
         pcb_PTR proc;
         pcb_PTR currentPcb;
         semd_PTR currentSemd;
@@ -75,89 +77,54 @@ void Terminate_Process_NSYS2(int pid, state_t *except_state) {
             }
         }
 
-
-
         list_for_each_entry(currentSemd, &semd_h, s_link) {
             list_for_each_entry(currentPcb, &currentSemd->s_procq, p_list) {
                 if (currentPcb->p_pid == pid) {
-                    return currentPcb;
+                    proc = currentPcb;
                 }
             }
         }
 
-
-        // for(int i = 0; i < MAXSEM-1; i++){
-        //     list_for_each_entry(currentPcb, &dSemaphores[i], p_list) {
-        //         if (currentPcb->p_pid == pid) {
-        //             proc = currentPcb;
-        //         }
-        //     }
-        // }
-        
-
-        outChild(proc);
+        //outChild(proc);
         terminateProgeny(proc);
         proc = NULL;
     }
+    klog_print("NSYS2 pre sched\n");
     scheduler();
 }
 
 void terminateProgeny(pcb_t* removeMe){
     if (removeMe == NULL) return;
     while (!(emptyChild(removeMe))){
-        terminateProgeny(removeChild(removeMe));
+        pcb_PTR pr = removeChild(removeMe);
+        klog_print("in loop func\n");
+        br2();
+        terminateProgeny(pr);
     }
+    klog_print("loop super func\n");
+    br2();
     terminateSingleProcess(removeMe);
 }
 
 void terminateSingleProcess(pcb_t* removeMe){
-    // klog_print("dec prC terminate\n");
-    breakpoint();
-    klog_print("\n");
-    klog_print_hex(prCount);
-    klog_print("\n");
-    klog_print_hex(sbCount);
-    klog_print("\n");
+    outChild(removeMe);
     prCount--;
+    int *sem = removeMe->p_semAdd;
     pcb_PTR proc;
     if(removeMe->p_prio == PROCESS_PRIO_LOW)
         proc = outProcQ(&low_priority_queue, removeMe);
     else
         proc = outProcQ(&high_priority_queue, removeMe);
     if (proc == NULL){   // non e' sulla readyqueue
-        if ((&(dSemaphores[0]) <= removeMe->p_semAdd) && (removeMe->p_semAdd <= &(dSemaphores[MAXSEM-1]))){
-            // klog_print("dec sbC terminate\n");
-            // semd_PTR sm = container_of(removeMe->p_semAdd, semd_t, s_key);
-            // proc = outProcQ(sm->s_procq, removeMe);
-            proc = outBlocked(removeMe);
-            //breakpoint();
-            if (proc != NULL)
+        proc = outBlocked(removeMe);
+        if (proc != NULL){
+            if ((&(dSemaphores[0]) <= sem) && (sem <= &(dSemaphores[MAXSEM-1]))){
                 sbCount--;
-        }else
-            *(removeMe->p_semAdd)++;
+            }else
+                *(sem)++;
+        }
     }
-    klog_print("\n");
-    klog_print_hex(prCount);
-    klog_print("\n");
-    klog_print_hex(sbCount);
-    klog_print("\n");
     freePcb(removeMe);
-
-
-
-    // if(*(removeMe->p_semAdd) == 0){
-    //     //capire se e' bloccato su un device semaphore o no, se non e' un device semaphore allora
-    //     if (&(dSemaphores[0]) <= removeMe->p_semAdd && removeMe->p_semAdd <= &(dSemaphores[MAXSEM-1])){
-    //         // klog_print("dec sbC terminate\n");
-    //         breakpoint();
-    //         sbCount--;
-    //     }
-    //     else
-    //         (*(removeMe->p_semAdd))++;
-    //     //altrimenti non faccio niente (cambio solo i soft-blocked count) perche' quando succedera' l'interrupt il semaforo verra' V'ed
-    //     outBlocked(removeMe);
-    // }
-    // freePcb(removeMe);
 }
 
 void Passeren_NSYS3(int *semAddr, state_t *except_state) {
@@ -285,6 +252,7 @@ void NSYS7_Wait_For_Clock(state_t *except_state){
     sbCount++;
     klog_print("NSYS7 passeren\n");
     Passeren_NSYS3(&(dSemaphores[MAXSEM-1]), except_state);
+    //except_state->pc_epc += WORD_SIZE;
     scheduler();
     //scheduler();
     // set_time(currentProcess, startTime);

@@ -26,3 +26,5 @@ void NSYS8_Get_SUPPORT_Data(state_t *);
 void NSYS9_Get_Process_ID(state_t *, int);
 
 void NSYS10_Yield(state_t *);
+
+void br2();

@@ -159,13 +159,16 @@ del PCB puntato da prnt.
 */
 
 void insertChild(pcb_PTR pnrt, pcb_PTR p){
-    if(list_empty(&pnrt->p_child)){                     // se non ha figli
-        pnrt->p_child.next = &p->p_sib;                 // il puntatore di child.next punta a p->p_sib (lo inserisco in testa)
-        p->p_parent = pnrt;                             
-    }else{
-        list_add_tail(&p->p_sib, &pnrt->p_child);       // lo aggiungo in coda
-        p->p_parent = pnrt;                             
-    }
+    list_add_tail(&p->p_sib, &pnrt->p_child);
+    p->p_parent = pnrt;
+
+    // if(list_empty(&pnrt->p_child)){                     // se non ha figli
+    //     pnrt->p_child.next = &p->p_sib;                 // il puntatore di child.next punta a p->p_sib (lo inserisco in testa)
+    //     p->p_parent = pnrt;                             
+    // }else{
+    //     list_add_tail(&p->p_sib, &pnrt->p_child);       // lo aggiungo in coda
+    //     p->p_parent = pnrt;                             
+    // }
 }
 
 /*

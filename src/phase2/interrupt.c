@@ -44,7 +44,7 @@ void manageInterr(int line, state_t *exception_state){
         scheduler();
     }
     else if(line == 2){  // reload interval timer
-        klog_print("reload interval timer\n");
+        //klog_print("reload interval timer\n");
         // klog_print("si tratta di un reload interval timer\n");
 
         /*Acknowledge the interrupt by loading the Interval Timer with a new
