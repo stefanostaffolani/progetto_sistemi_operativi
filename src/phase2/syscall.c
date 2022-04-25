@@ -50,12 +50,14 @@ void Create_Process_NSYS1(state_t *except_state) {
 /* NSYS2 */
 void Terminate_Process_NSYS2(int pid, state_t *except_state) {
     if(pid == 0){
+        outChild(currentProcess);
         //recursively terminate all progeny of the process
-        terminateprogeny(currentProcess);
+        
+        terminateProgeny(currentProcess);
+        currentProcess = NULL;
     } else { //elimino il processo con il pid indicato
         //klog_print_hex(pid);
-        except_state->pc_epc += WORDLEN;
-        currentProcess->p_s = *except_state;
+      
         pcb_PTR proc;
         pcb_PTR currentPcb;
         semd_PTR currentSemd;
@@ -78,7 +80,7 @@ void Terminate_Process_NSYS2(int pid, state_t *except_state) {
         list_for_each_entry(currentSemd, &semd_h, s_link) {
             list_for_each_entry(currentPcb, &currentSemd->s_procq, p_list) {
                 if (currentPcb->p_pid == pid) {
-                    proc = currentPcb;
+                    return currentPcb;
                 }
             }
         }
@@ -91,38 +93,15 @@ void Terminate_Process_NSYS2(int pid, state_t *except_state) {
         //         }
         //     }
         // }
-        terminateprogeny(proc);
-    }
-    if (currentProcess != NULL){
-    set_time(currentProcess, startTime);
-        LDST(except_state);
+        
+
+        outChild(proc);
+        terminateProgeny(proc);
+        proc = NULL;
     }
     scheduler();
 }
-void terminateprogeny(pcb_t* removeMe){
-    struct list_head *iterator;
-    list_for_each(iterator, &removeMe->p_child){
-        pcb_t* child = container_of(iterator, pcb_t, p_sib);
-        terminateprogeny(child);
-    }
-    outChild(removeMe);
 
-    if(currentProcess->p_pid == removeMe->p_pid){
-        currentProcess = NULL;
-    } else if (removeMe->p_semAdd != 0){
-        if((&(dSemaphores[0]) <= removeMe->p_semAdd) && (removeMe->p_semAdd <= &(dSemaphores[0]) + 49 * sizeof(int))){
-            sbCount--;
-        }
-        outBlocked(removeMe);
-    } else {
-            if(removeMe->p_prio == PROCESS_PRIO_LOW)
-        removeMe = outProcQ(&low_priority_queue, removeMe);
-    else
-        removeMe = outProcQ(&high_priority_queue, removeMe);   
-        }
-        freePcb(removeMe);
-        prCount--;
-}
 void terminateProgeny(pcb_t* removeMe){
     if (removeMe == NULL) return;
     while (!(emptyChild(removeMe))){
@@ -134,14 +113,11 @@ void terminateProgeny(pcb_t* removeMe){
 void terminateSingleProcess(pcb_t* removeMe){
     // klog_print("dec prC terminate\n");
     breakpoint();
-    // klog_print("\n");
-    // klog_print_hex(prCount);
-    // klog_print("\n");
-    // klog_print_hex(sbCount);
-    // klog_print("\n");
-    if (currentProcess->p_pid == removeMe->p_pid && currentProcess != NULL){
-        currentProcess = NULL;
-    }
+    klog_print("\n");
+    klog_print_hex(prCount);
+    klog_print("\n");
+    klog_print_hex(sbCount);
+    klog_print("\n");
     prCount--;
     pcb_PTR proc;
     if(removeMe->p_prio == PROCESS_PRIO_LOW)
@@ -160,11 +136,11 @@ void terminateSingleProcess(pcb_t* removeMe){
         }else
             *(removeMe->p_semAdd)++;
     }
-    // klog_print("\n");
-    // klog_print_hex(prCount);
-    // klog_print("\n");
-    // klog_print_hex(sbCount);
-    // klog_print("\n");
+    klog_print("\n");
+    klog_print_hex(prCount);
+    klog_print("\n");
+    klog_print_hex(sbCount);
+    klog_print("\n");
     freePcb(removeMe);
 
 

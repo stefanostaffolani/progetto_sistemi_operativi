@@ -11,7 +11,6 @@ void Passeren_NSYS3(int *, state_t *);
 
 void Verhogen_NSYS4(int *,state_t *);
 
-void terminateprogeny(pcb_t*);
 void terminateProgeny(pcb_t*);
 
 void terminateSingleProcess(pcb_t *);
