@@ -17,6 +17,7 @@ void scheduler(){
         //     klog_print("secondo caso scheduler\n");
         //processor_state->pc_epc += WORDLEN;
         breakpoint();
+        // br2();
         LDST(&(currentProcess->p_s));
     } else{   // sono entrambe vuote
 

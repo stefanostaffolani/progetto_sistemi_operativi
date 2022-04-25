@@ -54,7 +54,7 @@ void manageInterr(int line, state_t *exception_state){
         
         /* Unblock ALL pcbs blocked on the Pseudo-clock semaphore */
         while(headBlocked(&(dSemaphores[MAXSEM - 1])) != NULL){
-            klog_print("\ncosa accade?\n");
+            // klog_print("\ncosa accade?\n");
             pcb_PTR unblockedP = removeBlocked(&dSemaphores[MAXSEM - 1]);
             // klog_print("dec sbC while\n");
             //breakpoint();
@@ -65,7 +65,7 @@ void manageInterr(int line, state_t *exception_state){
         dSemaphores[MAXSEM-1] = 0;
 
         if(currentProcess == NULL){
-            klog_print("chiamo scheduler\n");
+            // klog_print("chiamo scheduler\n");
             breakpoint();
             scheduler();
         }
@@ -74,7 +74,7 @@ void manageInterr(int line, state_t *exception_state){
         // klog_print("LDST sbrago\n");
         // klog_print_hex(exception_state);
         // klog_print("ho finito interval timer\n");
-        klog_print("sto per fare LDST\n");
+        // klog_print("sto per fare LDST\n");
         breakpoint();
         LDST(exception_state);  // load old processor state
         }

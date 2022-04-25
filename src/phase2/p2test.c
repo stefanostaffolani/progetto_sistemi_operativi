@@ -479,7 +479,9 @@ void p4() {
 
     SYSCALL(VERHOGEN, (int)&sem_endp4, 0, 0); /* V(sem_endp4)          */
 
+    klog_print("prima del termPROC\n");
     SYSCALL(TERMPROCESS, 0, 0, 0); /* terminate p4      */
+    klog_print("dopo il termPROC\n");
 
     /* just did a SYS2, so should not get to this point */
     print("error: p4 didn't terminate\n");

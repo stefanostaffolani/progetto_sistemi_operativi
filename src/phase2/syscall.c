@@ -40,7 +40,7 @@ void Create_Process_NSYS1(state_t *except_state) {
         //this process is in the "ready" state
         newProcess->p_semAdd = NULL;
         //Process Count is incremented by one
-        klog_print("\ninc prC NSYS1\n");
+        // klog_print("\ninc prC NSYS1\n");
         breakpoint();
         prCount++;
     }
@@ -54,6 +54,7 @@ void Terminate_Process_NSYS2(int pid, state_t *except_state) {
     except_state->pc_epc += WORD_SIZE;
     if(pid == 0){
         //outChild(currentProcess);
+        klog_print("stra zero\n");
         //recursively terminate all progeny of the process        
         terminateProgeny(currentProcess);
         currentProcess = NULL;
@@ -90,19 +91,26 @@ void Terminate_Process_NSYS2(int pid, state_t *except_state) {
         proc = NULL;
     }
     klog_print("NSYS2 pre sched\n");
+    br3();
+
     scheduler();
 }
 
 void terminateProgeny(pcb_t* removeMe){
     if (removeMe == NULL) return;
-    while (!(emptyChild(removeMe))){
-        pcb_PTR pr = removeChild(removeMe);
-        klog_print("in loop func\n");
-        br2();
-        terminateProgeny(pr);
+
+    pcb_PTR p;
+    list_for_each_entry(p, &removeMe->p_child, p_sib){
+        terminateProgeny(p);
     }
-    klog_print("loop super func\n");
-    br2();
+
+    // while (!(emptyChild(removeMe))){
+    //     pcb_PTR pr = removeChild(removeMe);
+    //     klog_print("in loop func\n");
+    //     br2();
+    //     terminateProgeny(pr);
+    // }
+    // klog_print("loop super func\n");
     terminateSingleProcess(removeMe);
 }
 
@@ -250,7 +258,7 @@ void NSYS7_Wait_For_Clock(state_t *except_state){
 
     dSemaphores[MAXSEM-1] = 0;
     sbCount++;
-    klog_print("NSYS7 passeren\n");
+    // klog_print("NSYS7 passeren\n");
     Passeren_NSYS3(&(dSemaphores[MAXSEM-1]), except_state);
     //except_state->pc_epc += WORD_SIZE;
     scheduler();

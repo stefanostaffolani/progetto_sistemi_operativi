@@ -67,18 +67,18 @@ void syscall_exception(state_t *exception_state){
         NSYS6_Get_CPU_Time(exception_state);
         break;
     case CLOCKWAIT:
-        klog_print("wait for cock?\n");
+        // klog_print("wait for cock?\n");
         NSYS7_Wait_For_Clock(exception_state);
         break;
     case GETSUPPORTPTR:
-        klog_print("get support data?\n");
+        // klog_print("get support data?\n");
         NSYS8_Get_SUPPORT_Data(exception_state);
         break;
     case GETPROCESSID:
         NSYS9_Get_Process_ID(exception_state, a1);
         break;
     case YIELD:
-        klog_print("yeld?\n");
+        // klog_print("yeld?\n");
         NSYS10_Yield(exception_state);
         break;
     default:
@@ -104,7 +104,7 @@ void pass_up_or_die(int except_type, state_t *exception_state){    // check if s
         // Perform a LDCXT using the fields from the correct sup exceptContext field of the Current Process.
         context_t support = currentProcess->p_supportStruct->sup_exceptContext[except_type];
         breakpoint();
-        klog_print("sto per fare la LDXCT\n");
+        // klog_print("sto per fare la LDXCT\n");
         LDCXT(support.stackPtr, support.status, support.pc);
     }
 }
