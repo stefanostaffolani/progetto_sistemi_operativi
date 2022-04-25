@@ -28,7 +28,7 @@ void Create_Process_NSYS1(state_t *except_state) {
         //take the process priority from the a2 register
         newProcess->p_prio = except_state->reg_a2;
         //take the pointer to a structure containing the additional Support Level fields from the a3 register
-        //memcpy(&(newProcess->p_supportStruct), ((support_t*) except_state->reg_a3), sizeof(support_t));
+        //memcpy(&newProcess->p_supportStruct, ((support_t*) except_state->reg_a3), sizeof(support_t));
         newProcess->p_supportStruct = (support_t*) except_state->reg_a3;
         //newly populated pcb is placed on the Ready Queue...
         insert_to_readyq(newProcess);
