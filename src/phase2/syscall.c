@@ -42,7 +42,7 @@ void Create_Process_NSYS1(state_t *except_state) {
 /* NSYS2 */
 void Terminate_Process_NSYS2(int pid, state_t *except_state) {
     except_state->pc_epc += WORD_SIZE;
-        except_state->reg_t9 += WORD_SIZE;
+    except_state->reg_t9 += WORD_SIZE;
 
     if(pid == 0){
         //recursively terminate all progeny of the process        
@@ -116,6 +116,7 @@ void terminateSingleProcess(pcb_t* removeMe){
 
 void Passeren_NSYS3(int *semAddr, state_t *except_state) {
     
+    // se il semaforo è 0 blocca
     if(*semAddr == 0){
         set_time(currentProcess, startTime);
         except_state->pc_epc += WORD_SIZE;
@@ -124,14 +125,14 @@ void Passeren_NSYS3(int *semAddr, state_t *except_state) {
         insertBlocked(semAddr, currentProcess);
         currentProcess = NULL;
         scheduler();
-    }
+    } // altrimenti non ci sono processi bloccati
     else if(headBlocked(semAddr) == NULL) {
         (*semAddr)--;
         except_state->pc_epc += WORD_SIZE;
         except_state->reg_t9 += WORD_SIZE;
         LDST(except_state);
     }
-    else{
+    else{   // ci sono processi bloccati (dalla verhogen)
         pcb_PTR proc = removeBlocked(semAddr);
         insert_to_readyq(proc);
         except_state->pc_epc += WORD_SIZE;
@@ -141,7 +142,8 @@ void Passeren_NSYS3(int *semAddr, state_t *except_state) {
 }
 
 void Verhogen_NSYS4(int *semAddr, state_t *except_state) {
-    //physical address of the semaphore in a1
+
+    // speculare alla passeren
     if(*semAddr == 1){
         set_time(currentProcess, startTime);
         insertBlocked(semAddr, currentProcess);
@@ -172,8 +174,9 @@ void DO_IO_Device_NSYS5(state_t *except_state) {
     //read the device number in register a2
     int cmdValue = except_state->reg_a2;
     *cmdAddr = cmdValue;
-    //I need the semaphore that the nucleus maintains for the I/O device indicated by the value in a1
 
+    //I need the semaphore that the nucleus maintains for the I/O device indicated by the value in a1
+     
     int devNum;
     int intLine;
 
@@ -199,6 +202,7 @@ void DO_IO_Device_NSYS5(state_t *except_state) {
         }
     }
 
+    // trovo il semaforo
     int sem_loc = devNum + (DEVPERINT * intLine);
     int *semAdd = &dSemaphores[sem_loc];
 
@@ -209,7 +213,7 @@ void DO_IO_Device_NSYS5(state_t *except_state) {
     Passeren_NSYS3(semAdd, except_state);
 }
 
-void NSYS6_Get_CPU_Time(state_t *except_state){
+void Get_CPU_Time_NSYS6(state_t *except_state){
     set_time(currentProcess, startTime);
     except_state->reg_v0 = currentProcess->p_time;
     except_state->pc_epc += WORD_SIZE;
@@ -217,21 +221,21 @@ void NSYS6_Get_CPU_Time(state_t *except_state){
     LDST(except_state);
 }
 
-void NSYS7_Wait_For_Clock(state_t *except_state){
+void Wait_For_Clock_NSYS7(state_t *except_state){
     dSemaphores[MAXSEM-1] = 0;
     sbCount++;
     Passeren_NSYS3(&(dSemaphores[MAXSEM-1]), except_state);
     scheduler();
 }
 
-void NSYS8_Get_SUPPORT_Data(state_t *except_state){
+void Get_SUPPORT_Data_NSYS8(state_t *except_state){
     except_state->reg_v0 = (unsigned int) currentProcess->p_supportStruct;
     except_state->pc_epc += WORD_SIZE;
     except_state->reg_t9 += WORD_SIZE;
     LDST(except_state);
 }
 
-void NSYS9_Get_Process_ID(state_t *except_state, int parent){
+void Get_Process_ID_NSYS9(state_t *except_state, int parent){
     if (parent){
         if(currentProcess->p_parent == NULL)
             except_state->reg_v0 = 0;
@@ -245,7 +249,7 @@ void NSYS9_Get_Process_ID(state_t *except_state, int parent){
     LDST(except_state);
 }
 
-void NSYS10_Yield(state_t *except_state){
+void Yield_NSYS10(state_t *except_state){
     except_state->pc_epc += WORD_SIZE;
     except_state->reg_t9 += WORD_SIZE;
     memcpy(&(currentProcess->p_s), except_state, sizeof(state_t));

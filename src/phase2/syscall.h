@@ -17,14 +17,12 @@ void terminateSingleProcess(pcb_t *);
 
 void DO_IO_Device_NSYS5(state_t *);
 
-void NSYS6_Get_CPU_Time(state_t *);
+void Get_CPU_Time_NSYS6(state_t *);
 
-void NSYS7_Wait_For_Clock(state_t *);
+void Wait_For_Clock_NSYS7(state_t *);
 
-void NSYS8_Get_SUPPORT_Data(state_t *);
+void Get_SUPPORT_Data_NSYS8(state_t *);
 
-void NSYS9_Get_Process_ID(state_t *, int);
+void Get_Process_ID_NSYS9(state_t *, int);
 
-void NSYS10_Yield(state_t *);
-
-void br2();
+void Yield_NSYS10(state_t *);

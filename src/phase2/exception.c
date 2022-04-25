@@ -48,19 +48,19 @@ void syscall_exception(state_t *exception_state){
         DO_IO_Device_NSYS5(exception_state);
         break;
     case GETTIME:
-        NSYS6_Get_CPU_Time(exception_state);
+        Get_CPU_Time_NSYS6(exception_state);
         break;
     case CLOCKWAIT:
-        NSYS7_Wait_For_Clock(exception_state);
+        Wait_For_Clock_NSYS7(exception_state);
         break;
     case GETSUPPORTPTR:
-        NSYS8_Get_SUPPORT_Data(exception_state);
+        Get_SUPPORT_Data_NSYS8(exception_state);
         break;
     case GETPROCESSID:
-        NSYS9_Get_Process_ID(exception_state, a1);
+        Get_Process_ID_NSYS9(exception_state, a1);
         break;
     case YIELD:
-        NSYS10_Yield(exception_state);
+        Yield_NSYS10(exception_state);
         break;
     default:
         exception_state->cause = (exception_state->cause & ~CAUSE_EXCCODE_MASK) | (EXC_RI << CAUSE_EXCCODE_BIT);
