@@ -63,7 +63,6 @@ void syscall_exception(state_t *exception_state){
         Yield_NSYS10(exception_state);
         break;
     default:
-        exception_state->cause = (exception_state->cause & ~CAUSE_EXCCODE_MASK) | (EXC_RI << CAUSE_EXCCODE_BIT);
         pass_up_or_die(GENERALEXCEPT, exception_state);
     }
 }
