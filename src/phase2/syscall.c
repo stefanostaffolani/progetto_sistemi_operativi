@@ -102,7 +102,7 @@ void terminateSingleProcess(pcb_t* removeMe){
     }
     outChild(removeMe);
     prCount--;
-    int *sem = removeMe->p_semAdd;
+    // int *sem = removeMe->p_semAdd;
     pcb_PTR proc;
 
     // lo cerco nella readyqueue queue
@@ -116,9 +116,10 @@ void terminateSingleProcess(pcb_t* removeMe){
             if (proc != NULL){
                 sbCount--;
             }
-        }else{
-            *(removeMe->p_semAdd)++;
         }
+        // }else{
+        //     *(removeMe->p_semAdd) = *(removeMe->p_semAdd)+1;
+        // }
     }
 
     freePcb(removeMe);
@@ -266,7 +267,24 @@ void Yield_NSYS10(state_t *except_state){
     except_state->pc_epc += WORD_SIZE;
     except_state->reg_t9 += WORD_SIZE;
     memcpy(&(currentProcess->p_s), except_state, sizeof(state_t));
-    insert_to_readyq(currentProcess);
-    set_time(currentProcess, startTime);
-    scheduler();
+    if(emptyProcQ(&high_priority_queue)) {
+        if (emptyProcQ(&low_priority_queue)) {
+            insert_to_readyq(currentProcess);
+            set_time(currentProcess, startTime);
+            scheduler();
+        }
+        else {
+            insert_to_readyq(currentProcess);
+            set_time(currentProcess, startTime);
+            currentProcess = removeProcQ(&low_priority_queue);
+            setTIMER(TIMESLICE * (*((cpu_t*) TIMESCALEADDR)));
+            STCK(startTime);
+            LDST(&(currentProcess->p_s));
+        }
+    }
+    else { 
+        insert_to_readyq(currentProcess);
+        set_time(currentProcess, startTime);
+        scheduler();
+    }
 }
