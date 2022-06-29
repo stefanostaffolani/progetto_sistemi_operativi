@@ -65,6 +65,9 @@ extern int toprint;
 //#define MAXSEM   20
 
 
+void breakpoint(){}
+
+
 int sem_term_mut = 1,              /* for mutual exclusion on terminal */
     s[MAXSEM + 1],                 /* semaphore array */
     sem_testsem             = 0,   /* for a simple test */
@@ -688,6 +691,7 @@ void p8leaf2() {
 
 void p8leaf3() {
     print("leaf process (3) starts\n");
+    breakpoint();
     SYSCALL(VERHOGEN, (int)&sem_endcreate[2], 0, 0);
     SYSCALL(PASSEREN, (int)&sem_blkp8, 0, 0);
 }

@@ -40,13 +40,13 @@ void Create_Process_NSYS1(state_t *except_state) {
 }
 
 void Terminate_Process_NSYS2(int pid, state_t *except_state) {
-    except_state->pc_epc += WORD_SIZE;
+    // except_state->pc_epc += WORD_SIZE;
     if(pid == 0){
         //recursively terminate all progeny of the process
         terminateProgeny(currentProcess);
         currentProcess = NULL;
     } else { //elimino il processo con il pid indicato
-      
+
         pcb_PTR proc;
         pcb_PTR currentPcb;
         semd_PTR currentSemd;
@@ -110,22 +110,23 @@ void terminateSingleProcess(pcb_t* removeMe){
         proc = outProcQ(&low_priority_queue, removeMe);
     else
         proc = outProcQ(&high_priority_queue, removeMe);
+
     if (proc == NULL){   // non e' sulla readyqueue
+        proc = outBlocked(removeMe);
         if ((&(dSemaphores[0]) <= removeMe->p_semAdd) && (removeMe->p_semAdd <= &(dSemaphores[MAXSEM-1]))){
-            proc = outBlocked(removeMe);
-            if (proc != NULL){
+            if (proc != NULL) {
                 sbCount--;
             }
         }
-        // }else{
+        // else {
         //     *(removeMe->p_semAdd) = *(removeMe->p_semAdd)+1;
         // }
     }
 
-    freePcb(removeMe);
     if (removeMe->p_pid == currentProcess->p_pid){
         currentProcess = NULL;
     }
+    freePcb(removeMe);
 }
 
 void Passeren_NSYS3(int *semAddr, state_t *except_state) {
