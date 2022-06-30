@@ -7,7 +7,7 @@ void Create_Process_NSYS1(state_t *except_state) {
 
     pcb_PTR newProcess = allocPcb();
 
-    if(newProcess == NULL){     //new process cant be created, -1 in caller's v0 register
+    if(newProcess == NULL){     //new process can't be created, -1 in caller's v0 register
         except_state->reg_v0 = -1;
     } else {
         //id del processo appena creato e' l'inidirizzo della struttura pcb_t corrispondente
