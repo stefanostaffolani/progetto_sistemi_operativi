@@ -51,8 +51,11 @@ pcb_PTR allocPcb(){
     list_del(list_next(&pcbFree_h));                                // rimuovo il primo elemento di quelli liberi
     INIT_LIST_HEAD(&tmp->p_child);                                  // inizializzo i campi di tmp                       
     INIT_LIST_HEAD(&tmp->p_list);
-    tmp->p_parent = NULL;                                               
+    tmp->p_parent = NULL;
+    tmp->p_prio = 0;
+    tmp->p_supportStruct = NULL;                                               
     INIT_LIST_HEAD(&tmp->p_sib);
+    tmp->p_pid = 0;
     tmp->p_semAdd = NULL;
     return tmp;                                                     // restituisco il primo processo nella lista di quelli liberi
 }
@@ -154,13 +157,16 @@ del PCB puntato da prnt.
 */
 
 void insertChild(pcb_PTR pnrt, pcb_PTR p){
-    if(list_empty(&pnrt->p_child)){                     // se non ha figli
-        pnrt->p_child.next = &p->p_sib;                 // il puntatore di child.next punta a p->p_sib (lo inserisco in testa)
-        p->p_parent = pnrt;                             
-    }else{
-        list_add_tail(&p->p_sib, &pnrt->p_child);       // lo aggiungo in coda
-        p->p_parent = pnrt;                             
-    }
+    list_add_tail(&p->p_sib, &pnrt->p_child);
+    p->p_parent = pnrt;
+
+    // if(list_empty(&pnrt->p_child)){                     // se non ha figli
+    //     pnrt->p_child.next = &p->p_sib;                 // il puntatore di child.next punta a p->p_sib (lo inserisco in testa)
+    //     p->p_parent = pnrt;                             
+    // }else{
+    //     list_add_tail(&p->p_sib, &pnrt->p_child);       // lo aggiungo in coda
+    //     p->p_parent = pnrt;                             
+    // }
 }
 
 /*
@@ -173,8 +179,8 @@ pcb_PTR removeChild(pcb_PTR p){
         return NULL;                                            //  restituisce NULL
     }
     pcb_PTR son = container_of(p->p_child.next, pcb_t, p_sib);  //  primo processo figlio
-    list_del(p->p_child.next);                                  //  rimuovo il primo figlio della coda
-    p->p_parent = NULL;                                         
+    list_del(&son->p_child);                                  //  rimuovo il primo figlio della coda
+    //son->p_parent = NULL;                                         
     return son;                                                 //  restituisco il figlio rimosso
 }
 
