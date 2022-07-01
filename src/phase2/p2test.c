@@ -19,9 +19,11 @@
 #include "pandos_types.h"
 #include <umps3/umps/libumps.h>
 #include "debug.h"
+#include "globals.h"
 
 typedef unsigned int devregtr;
 
+extern struct list_head low_priority_queue;
 extern int toprint;
 
 /* hardware constants */
@@ -290,7 +292,12 @@ void test() {
     print("p1 knows p5 ended\n");
 
     SYSCALL(PASSEREN, (int)&sem_blkp4, 0, 0); /* P(sem_blkp4)		*/
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+// fino a qui ok
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /* now for a more rigorous check of process termination */
     for (p8inc = 0; p8inc < 4; p8inc++) {
         /* Reset semaphores */ 
@@ -692,6 +699,16 @@ void p8leaf2() {
 
 void p8leaf3() {
     print("leaf process (3) starts\n");
+<<<<<<< HEAD
+=======
+    if (!emptyProcQ(&low_priority_queue)){
+        klog_print("la low non e' vuota\n");
+    }
+    else{
+        klog_print("la low e' vuota\n");
+    }
+    breakpoint();
+>>>>>>> e22e6510b4953cdc82e13e513b479c127d6fa0e8
     SYSCALL(VERHOGEN, (int)&sem_endcreate[2], 0, 0);
     SYSCALL(PASSEREN, (int)&sem_blkp8, 0, 0);
 }
