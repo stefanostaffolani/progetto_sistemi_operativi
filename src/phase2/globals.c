@@ -15,6 +15,7 @@ int prCount;  // Process Count
 the “blocked” state due to an I/O or timer request*/
 int sbCount; // soft-block Count
 
+int gpid; /* global pid */
 
 /*
 Pointer to the pcb that is in the “running” state,

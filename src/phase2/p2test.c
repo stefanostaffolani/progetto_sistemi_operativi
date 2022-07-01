@@ -726,9 +726,7 @@ void p10() {
         print("Inconsistent process id for p9!\n");
         PANIC();
     }
-klog_print("termino processo con ppid...\n");
-    SYSCALL(TERMPROCESS, ppid, 0, 0);   //FIXARE TERMINATE PROCESS con pid dato
-klog_print("ma non va quindi non mi leggerai mai\n");
+    SYSCALL(TERMPROCESS, ppid, 0, 0);  
     print("Error: p10 didn't die with its parent!\n");
     PANIC();
 }

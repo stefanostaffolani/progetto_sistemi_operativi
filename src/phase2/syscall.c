@@ -11,7 +11,7 @@ void Create_Process_NSYS1(state_t *except_state) {
         except_state->reg_v0 = -1;
     } else {
         //id del processo appena creato e' l'inidirizzo della struttura pcb_t corrispondente
-        newProcess->p_pid = (memaddr) newProcess;
+        newProcess->p_pid = ++gpid;
         //to say the new process could be created
         processor_state->reg_v0 = newProcess->p_pid;
         //take the initial state from the a1 register
@@ -33,6 +33,10 @@ void Create_Process_NSYS1(state_t *except_state) {
         prCount++;
     }
 
+    // klog_print("PID= ");
+    // klog_print_hex(newProcess->p_pid);
+    // klog_print("\n");
+
     //control returned to the Current Process
     except_state->pc_epc += WORD_SIZE;
     except_state->reg_t9 += WORD_SIZE;
@@ -41,9 +45,6 @@ void Create_Process_NSYS1(state_t *except_state) {
 
 void Terminate_Process_NSYS2(int pid, state_t *except_state) {
 
-    except_state->pc_epc += WORD_SIZE;
-    except_state->reg_t9 += WORD_SIZE;
-    // except_state->pc_epc += WORD_SIZE;
     if(pid == 0){
         //recursively terminate all progeny of the process
         terminateProgeny(currentProcess);
@@ -79,6 +80,9 @@ void Terminate_Process_NSYS2(int pid, state_t *except_state) {
 
         terminateProgeny(proc);
     }
+
+    except_state->pc_epc += WORD_SIZE;
+    except_state->reg_t9 += WORD_SIZE;
     // if (currentProcess != NULL){
     //     // except_state->pc_epc += WORD_SIZE;
     //     LDST(except_state);
@@ -87,7 +91,7 @@ void Terminate_Process_NSYS2(int pid, state_t *except_state) {
 }
 
 void terminateProgeny(pcb_t* removeMe){
-    if(removeMe == NULL) return;
+    if(removeMe == NULL) return; /* non serve */
     // scorro tutti i processi figli di removeMe
     pcb_PTR p;
     list_for_each_entry(p, &removeMe->p_child, p_sib){
@@ -102,14 +106,14 @@ void terminateSingleProcess(pcb_t* removeMe){
     if(removeMe == NULL) return;
     
     prCount--;
+    outChild(removeMe);
 
     if (removeMe->p_pid == currentProcess->p_pid){
-        currentProcess = NULL;
         freePcb(removeMe);
+        currentProcess = NULL;
         scheduler();
     }
-    outChild(removeMe);
-    // int *sem = removeMe->p_semAdd;
+
     pcb_PTR proc;
 
     // lo cerco nella readyqueue queue

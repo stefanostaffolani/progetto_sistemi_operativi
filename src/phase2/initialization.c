@@ -30,8 +30,10 @@ int main(){
 
     pcb_PTR initPcb = allocPcb();
 
+    gpid = 1;
+
     initPcb->p_prio = PROCESS_PRIO_LOW;
-    initPcb->p_pid = 1;
+    initPcb->p_pid = gpid;
     initPcb->p_time = 0;
     initPcb->p_semAdd = NULL;
     initPcb->p_supportStruct = NULL;

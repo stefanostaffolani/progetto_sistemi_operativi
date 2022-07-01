@@ -14,6 +14,7 @@ extern struct list_head high_priority_queue;
 extern struct list_head low_priority_queue;
 extern int prCount;
 extern int sbCount;
+extern int gpid;
 extern pcb_PTR currentProcess;
 extern passupvector_t* PassUpVector;
 extern devregarea_t* memInfo;
