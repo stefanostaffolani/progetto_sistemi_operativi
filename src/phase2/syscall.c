@@ -40,6 +40,9 @@ void Create_Process_NSYS1(state_t *except_state) {
 }
 
 void Terminate_Process_NSYS2(int pid, state_t *except_state) {
+
+    except_state->pc_epc += WORD_SIZE;
+    except_state->reg_t9 += WORD_SIZE;
     // except_state->pc_epc += WORD_SIZE;
     if(pid == 0){
         //recursively terminate all progeny of the process
@@ -76,10 +79,10 @@ void Terminate_Process_NSYS2(int pid, state_t *except_state) {
 
         terminateProgeny(proc);
     }
-    if (currentProcess != NULL){
-        except_state->pc_epc += WORD_SIZE;
-        LDST(except_state);
-    }
+    // if (currentProcess != NULL){
+    //     // except_state->pc_epc += WORD_SIZE;
+    //     LDST(except_state);
+    // }
     scheduler();
 }
 
@@ -95,13 +98,17 @@ void terminateProgeny(pcb_t* removeMe){
 }
 
 void terminateSingleProcess(pcb_t* removeMe){
+    
     if(removeMe == NULL) return;
+    
+    prCount--;
+
     if (removeMe->p_pid == currentProcess->p_pid){
         currentProcess = NULL;
+        freePcb(removeMe);
         scheduler();
     }
     outChild(removeMe);
-    prCount--;
     // int *sem = removeMe->p_semAdd;
     pcb_PTR proc;
 
@@ -118,14 +125,8 @@ void terminateSingleProcess(pcb_t* removeMe){
                 sbCount--;
             }
         }
-        // else {
-        //     *(removeMe->p_semAdd) = *(removeMe->p_semAdd)+1;
-        // }
     }
 
-    if (removeMe->p_pid == currentProcess->p_pid){
-        currentProcess = NULL;
-    }
     freePcb(removeMe);
 }
 

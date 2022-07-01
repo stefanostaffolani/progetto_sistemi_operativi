@@ -306,6 +306,7 @@ void test() {
     }
 
     print("p1 finishes OK -- TTFN\n");
+    breakpoint();
     *((memaddr *)BADADDR) = 0; /* terminate p1 */
 
     /* should not reach this point, since p1 just got a program trap */
@@ -691,7 +692,6 @@ void p8leaf2() {
 
 void p8leaf3() {
     print("leaf process (3) starts\n");
-    breakpoint();
     SYSCALL(VERHOGEN, (int)&sem_endcreate[2], 0, 0);
     SYSCALL(PASSEREN, (int)&sem_blkp8, 0, 0);
 }

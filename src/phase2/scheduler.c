@@ -18,7 +18,6 @@ void scheduler(){
             setSTATUS(ALLOFF | IECON | IMON);   //interrupts on and PLT off
             WAIT();
         }else if (prCount > 0 && sbCount == 0){   // Deadlock
-            klog_print("sono qui vero?");
             PANIC();
         }
     }
