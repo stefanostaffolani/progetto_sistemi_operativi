@@ -699,16 +699,6 @@ void p8leaf2() {
 
 void p8leaf3() {
     print("leaf process (3) starts\n");
-<<<<<<< HEAD
-=======
-    if (!emptyProcQ(&low_priority_queue)){
-        klog_print("la low non e' vuota\n");
-    }
-    else{
-        klog_print("la low e' vuota\n");
-    }
-    breakpoint();
->>>>>>> e22e6510b4953cdc82e13e513b479c127d6fa0e8
     SYSCALL(VERHOGEN, (int)&sem_endcreate[2], 0, 0);
     SYSCALL(PASSEREN, (int)&sem_blkp8, 0, 0);
 }
