@@ -1,19 +1,21 @@
 #include "pandos_const.h"
 #include "pandos_types.h"
-
+#include "/usr/include/umps3/umps/types.h"
+#include "/usr/include/umps3/umps/const.h"
 
 // TODO: controllare tutti gli include onde evitare errori come in phase2!!!
 
 swap_t swap_pool[POOLSIZE];
 
 int sem_swap = 1;   // per mutua esclusione sulla swap pool
-inline static void init_swap_pool(){
+
+void init_swap_pool(){
     for(int i = 0; i < POOLSIZE; i++){
         swap_pool[i].sw_asid = NOPROC;
     }
 }
 
-size_t get_vpn_index(size_t vpn){
+unsigned int get_vpn_index(unsigned int vpn){
     // if (vpn == (KUSEG + GETPAGENO) >> VPNSHIFT)    // serve per arrivare all'indirizzo di inizio della stack area
     //     return MAXPAGES - 1;
     // else 
@@ -49,7 +51,17 @@ void uTLB_RefillHandler() {
     LDST(saved_state);
 }
 
-
+void rw_flash(int operation, int asid, unsigned int index){
+    dtpreg_t *flashdev = (dtpreg_t *) DEV_REG_ADDR(FLASHINT, asid-1);
+    size_t blocknumber = get_vpn_index(index);
+    //if (operation == FLASHWRITE){
+    flashdev->data0 = &(swap_pool[index]);    // swap_pool + index
+    size_t cmd = operation | blocknumber;
+    SYSCALL(DOIO, &(flashdev->command), operation, 0);
+    if (flashdev->status != READY){        // c'e' un errore ==> program trap ==> TERMINATE       
+        SYSCALL(TERMPROCESS,0,0,0);
+    }
+}
 
 void pager(){
     support_t *sup = (support_t *) SYSCALL(GETSUPPORTPTR,0,0,0);
@@ -72,10 +84,11 @@ void pager(){
                 setENTRYLO(sp.pte_entryLO);
                 TLBWI();
             }
-
             setSTATUS(IECON);
+            rw_flash(FLASHWRITE, swap_pool[index].sw_asid, index);
         }
-                    
+        rw_flash(FLASHREAD, sup->sup_asid, sup->sup_exceptState->entry_hi >> VPNSHIFT);
+        
     }
     
 }
