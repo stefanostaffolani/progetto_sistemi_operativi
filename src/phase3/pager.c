@@ -98,13 +98,13 @@ void pager(){
         update_swap_pool(index_swap, vpn, sup);     // aggiorna la swap pool
         setSTATUS(DISABLEINTS);   // disabilito gli interrupt
         unsigned int vpn_index = get_vpn_index(vpn);
-        sup->sup_privatePgTbl[vpn_index].pte_entryLO = (VALIDON | DIRTYON | (&(swap_pool[index_swap]) << 12));    // mette il bit V a 1
-        pteEntry_t sp = swap_pool[index_swap].sw_pte;
-        setENTRYHI(sp.pte_entryHI);
+        sup->sup_privatePgTbl[vpn_index].pte_entryLO = (VALIDON | DIRTYON | (&(swap_pool[index_swap]) << ENTRYLO_PFN_BIT));    // mette il bit V a 1
+        //pteEntry_t sp = swap_pool[index_swap].sw_pte;
+        setENTRYHI(sup->sup_privatePgTbl[vpn].pte_entryHI);
         TLBP();
         if (!(getINDEX() & PRESENTFLAG)) {
-            setENTRYHI(sp.pte_entryHI);
-            setENTRYLO(sp.pte_entryLO);
+            setENTRYHI(sup->sup_privatePgTbl[vpn].pte_entryHI);
+            setENTRYLO(sup->sup_privatePgTbl[vpn].pte_entryLO);
             TLBWI();
         }
         setSTATUS(IECON);
