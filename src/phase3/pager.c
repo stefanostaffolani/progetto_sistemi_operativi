@@ -2,6 +2,7 @@
 #include "pandos_types.h"
 #include "/usr/include/umps3/umps/types.h"
 #include "/usr/include/umps3/umps/const.h"
+#include "phase2/globals.h"
 
 // TODO: controllare tutti gli include onde evitare errori come in phase2!!!
 
@@ -51,16 +52,23 @@ void uTLB_RefillHandler() {
     LDST(saved_state);
 }
 
-void rw_flash(int operation, int asid, unsigned int index){
+void rw_flash(int operation, int asid, unsigned int vpn){
     dtpreg_t *flashdev = (dtpreg_t *) DEV_REG_ADDR(FLASHINT, asid-1);
-    size_t blocknumber = get_vpn_index(index);
+    size_t blocknumber = get_vpn_index(vpn);
     //if (operation == FLASHWRITE){
-    flashdev->data0 = &(swap_pool[index]);    // swap_pool + index
+    flashdev->data0 = &(swap_pool[blocknumber]);    // swap_pool + index
     size_t cmd = operation | blocknumber;
     SYSCALL(DOIO, &(flashdev->command), operation, 0);
     if (flashdev->status != READY){        // c'e' un errore ==> program trap ==> TERMINATE       
         SYSCALL(TERMPROCESS,0,0,0);
     }
+}
+
+void update_swap_pool(int index_swap, unsigned int vpn, support_t *sup){
+    memaddr vpn_index = get_vpn_index(vpn);
+    swap_pool[index_swap].sw_asid = sup->sup_asid;
+    swap_pool[index_swap].sw_pageNo = vpn >> VPNSHIFT;
+    swap_pool[index_swap].sw_pte = sup->sup_privatePgTbl + vpn_index;   // non serve & perche' e' gia' un array !!
 }
 
 void pager(){
@@ -70,13 +78,12 @@ void pager(){
         SYSCALL(TERMPROCESS,0,0,0);
     else{
         SYSCALL(PASSEREN, (int)&sem_swap, 0, 0);
-        unsigned int vpn = sup->sup_exceptState->entry_hi >> 12;
-        int index = replace_algo();
-        if(swap_pool[index].sw_asid != NOPROC){
+        unsigned int vpn = sup->sup_exceptState->entry_hi >> VPNSHIFT;
+        int index_swap = replace_algo();
+        if(swap_pool[index_swap].sw_asid != NOPROC){
             setSTATUS(DISABLEINTS);   // disabilito gli interrupt      
-            swap_pool[index].sw_pte->pte_entryLO &= ~VALIDON;    // VALIDON == 512 == 2^9 negando ottengo il registro entryLO con il bit V uguale a 0
-            
-            pteEntry_t sp = swap_pool[index].sw_pte;
+            swap_pool[index_swap].sw_pte->pte_entryLO &= ~VALIDON;    // VALIDON == 512 == 2^9 negando ottengo il registro entryLO con il bit V uguale a 0
+            pteEntry_t sp = swap_pool[index_swap].sw_pte;
             setENTRYHI(sp.pte_entryHI);
             TLBP();
             if (!(getINDEX() & PRESENTFLAG)) {
@@ -85,10 +92,23 @@ void pager(){
                 TLBWI();
             }
             setSTATUS(IECON);
-            rw_flash(FLASHWRITE, swap_pool[index].sw_asid, index);
+            rw_flash(FLASHWRITE, swap_pool[index_swap].sw_asid, swap_pool[index_swap].sw_pte->pte_entryHI >> VPNSHIFT);
         }
-        rw_flash(FLASHREAD, sup->sup_asid, sup->sup_exceptState->entry_hi >> VPNSHIFT);
-        
-    }
-    
+        rw_flash(FLASHREAD, sup->sup_asid, vpn);
+        update_swap_pool(index_swap, vpn, sup);     // aggiorna la swap pool
+        setSTATUS(DISABLEINTS);   // disabilito gli interrupt
+        unsigned int vpn_index = get_vpn_index(vpn);
+        sup->sup_privatePgTbl[vpn_index].pte_entryLO = (VALIDON | DIRTYON | (&(swap_pool[index_swap]) << 12));    // mette il bit V a 1
+        pteEntry_t sp = swap_pool[index_swap].sw_pte;
+        setENTRYHI(sp.pte_entryHI);
+        TLBP();
+        if (!(getINDEX() & PRESENTFLAG)) {
+            setENTRYHI(sp.pte_entryHI);
+            setENTRYLO(sp.pte_entryLO);
+            TLBWI();
+        }
+        setSTATUS(IECON);
+        SYSCALL(VERHOGEN, (int)&sem_swap, 0, 0);
+        LDST(sup->sup_exceptState);
+    }   
 }
