@@ -2,7 +2,8 @@
 #include "/usr/include/umps3/umps/arch.h"
 
 #define PRINTCHR 2    // come definito in pops a pagina 39
-
+#define SENDCHAR 2    // pops capitolo 5.7
+#define RECVCHAR 2    // pops capitolo 5.7
 
 void exception_handler(){
     support_t *support = (support_t *) SYSCALL(GETSUPPORTPTR,0,0,0);
@@ -37,8 +38,12 @@ void syscall_exception_handler(support_t *support, state_t *except_state){
         except_state->reg_v0 = retval;
         break;
     case 4:                             // Write_to_Terminal
+        retval = Write_to_Terminal_SYS4(support);
+        except_state->reg_v0 = retval;    
         break;
     case 5:                             // Read_from_Terminal
+        retval = Read_from_Terminal_SYS5(support);
+        except_state->reg_v0 = retval;
         break;
     default:                            // kill process ==> this is an error
         program_trap_exception_handler(support);
@@ -74,7 +79,7 @@ void Terminate_SYS2(support_t *support){   // capire se va incrementato il PC an
 int Write_to_Printer_SYS3(support_t *support){
     size_t len = (size_t)support->sup_exceptState[GENERALEXCEPT].reg_a1;
     char *c = (char *)support->sup_exceptState[GENERALEXCEPT].reg_a2;      // stringa da scrivere
-    int retval;
+    //int retval;
     dtpreg_t *device = (dtpreg_t *)DEV_REG_ADDR(IL_PRINTER, support->sup_asid-1);     // il device e' asid-1 perche' i device sono 8 (da 0 a 7) e i processi sono 8 (da 1 a 8)
     SYSCALL(PASSEREN,(int)&sem_write_printer,0,0);                         // mutua esclusione per chiamare la DOIO
     for(size_t i = 0; i < len; i++){
@@ -87,4 +92,43 @@ int Write_to_Printer_SYS3(support_t *support){
     }
     SYSCALL(VERHOGEN,(int)&sem_write_printer,0,0);
     return len;
+}
+
+int Write_to_Terminal_SYS4(support_t *support){
+    size_t len = (size_t)support->sup_exceptState[GENERALEXCEPT].reg_a1;
+    char *c = (char *)support->sup_exceptState[GENERALEXCEPT].reg_a2;
+    dtpreg_t *device = (dtpreg_t *)DEV_REG_ADDR(IL_TERMINAL, support->sup_asid-1);
+    SYSCALL(PASSEREN, (int)&sem_write_terminal, 0, 0);
+    for(size_t i = 0; i < len; i++){
+        memaddr value = PRINTCHR | (memaddr)(c[i] << 8);       // pops 5.7 transmitted char non sono i primi 8 bit ma i secondi da dx
+        int status = SYSCALL(DOIO, (int)&((termreg_t *)device)->transm_command, (int)value, 0;
+        if((status & 0x000000FF) != READY){         // 0x000000FF mi isola il primo byte
+            SYSCALL(VERHOGEN,(int)&sem_write_terminal,0,0);
+            return -status;
+        }
+    }
+    SYSCALL(VERHOGEN,(int)&sem_write_terminal,0,0);
+    return len;
+}
+
+int Read_from_Terminal_SYS5(support_t *support){
+    char *buffer = support->sup_exceptState[GENERALEXCEPT].reg_a1;
+    //size_t len = support->sup_exceptState[GENERALEXCEPT].reg_a2;
+    termreg_t *terminal = DEV_REG_ADDR(IL_TERMINAL, support->sup_asid-1);
+    SYSCALL(PASSEREN, (int)&sem_read_terminal, 0, 0);
+    size_t i = 0;
+    char c = '\0';
+    while(c != '\n'){
+        int status = SYSCALL(DOIO, (int)&(terminal->recv_command), RECVCHAR, 0);   // cfr capitolo 5.7 pops
+        if((status & 0x000000FF) != READY){     // controllare se usare ready o RECVCHAR (5)
+            SYSCALL(VERHOGEN, (int)&sem_read_terminal, 0, 0);
+            return -status;
+        }
+        c = (char) (0x0000FF00 & status);
+        *(buffer + i) = c;
+        i++;
+    }
+    SYSCALL(VERHOGEN, (int)&sem_read_terminal, 0, 0);
+    *(buffer + i) = '\0';                      // controllare se necessario
+    return i;
 }
