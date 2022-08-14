@@ -12,6 +12,9 @@ int sem_swap = 1;   // per mutua esclusione sulla swap pool
 
 int swap_asid[8];
 
+int sem_write_printer = 1;   // semafori per le syscall write (SYS3 e SYS4)
+int sem_write_terminal = 1;
+
 void init_swap_asid(){
     for (int i = 0; i < 8; i++)
         swap_asid[i] = 0;
