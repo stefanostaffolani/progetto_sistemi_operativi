@@ -10,6 +10,25 @@ swap_t swap_pool[POOLSIZE];
 
 int sem_swap = 1;   // per mutua esclusione sulla swap pool
 
+int swap_asid[8];
+
+int sem_write_printer = 1;   // semafori per le syscall write (SYS3 e SYS4)
+int sem_write_terminal = 1;
+int sem_read_terminal = 1;   // semaforo per la syscall read (SYS5)
+
+void init_swap_asid(){
+    for (int i = 0; i < 8; i++)
+        swap_asid[i] = 0;
+}
+
+void update_swap_asid(int value, int asid){   // value is 1 or 0 (1 if sem is used, 0 else)
+    swap_asid[asid-1] = value;
+}
+
+int get_swap_asid(int asid){
+    return swap_asid[asid-1];
+}
+
 void init_swap_pool(){
     for(int i = 0; i < POOLSIZE; i++){
         swap_pool[i].sw_asid = NOPROC;
@@ -26,7 +45,7 @@ unsigned int get_vpn_index(unsigned int vpn){
 int replace_algo(){
     int i;
     //static int index;  // per il rimpiazzamento
-    for (i = 0; i < POOLSIZE; i++)
+    for (i = 0; i < POOLSIZE; i++)                  // ottimizzazione!
         if(swap_pool[i].sw_asid == NOPROC)
             break;
     if(i < POOLSIZE)    // ho trovato il frame
@@ -77,6 +96,7 @@ void pager(){
     if (code == EXC_MOD)
         SYSCALL(TERMPROCESS,0,0,0);
     else{
+        update_swap_asid(1,sup->sup_asid);
         SYSCALL(PASSEREN, (int)&sem_swap, 0, 0);
         unsigned int vpn = sup->sup_exceptState->entry_hi >> VPNSHIFT;
         int index_swap = replace_algo();
@@ -109,6 +129,7 @@ void pager(){
         }
         setSTATUS(IECON);
         SYSCALL(VERHOGEN, (int)&sem_swap, 0, 0);
+        update_swap_asid(0,sup->sup_asid);
         LDST(sup->sup_exceptState);
     }   
 }
