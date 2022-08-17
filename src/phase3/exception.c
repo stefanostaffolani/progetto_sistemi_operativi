@@ -22,7 +22,6 @@ void exception_handler(){
     LDST(except_state);
 }
 
-
 void syscall_exception_handler(support_t *support, state_t *except_state){
     const int a0 = except_state->reg_a0;
     int retval;
@@ -52,7 +51,6 @@ void syscall_exception_handler(support_t *support, state_t *except_state){
     
 }
 
-
 void program_trap_exception_handler(support_t *support){   // Terminate process with SYS2 (do V op in sem_swap)
     Terminate_SYS2();
 }
@@ -62,7 +60,6 @@ void Get_TOD_SYS1(state_t except_state){
     STCK(&TOD);
     except_state->reg_v0 = TOD;
 }
-
 
 void Terminate_SYS2(support_t *support){   // capire se va incrementato il PC anche qua (visto che viene fatto dal kernel)
     if(get_swap_asid(support->sup_asid)){
