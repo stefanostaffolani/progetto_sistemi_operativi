@@ -38,7 +38,7 @@ int main(){
         support_array[i].sup_exceptContext[1].status = state;
 
         // funzione che inizializza la pagetable
-        init_pagtable(i+1, support_array[i]);
+        init_pagtable(i+1, &support_array[i]);
 
         //sup.sup_exceptState[PGFAULTEXCEPT] = 
         SYSCALL(CREATEPROCESS, (int)&state, PROCESS_PRIO_LOW, (int)&sup);
