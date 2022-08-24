@@ -2,14 +2,13 @@
 
 // TODO: controllare tutti gli include onde evitare errori come in phase2!!!
 
+int sem_swap = 1;   // per mutua esclusione sulla swap pool
 
-sem_swap = 1;   // per mutua esclusione sulla swap pool
+int swap_asid[8];
 
-swap_asid[8];
-
-sem_write_printer = 1;   // semafori per le syscall write (SYS3 e SYS4)
-sem_write_terminal = 1;
-sem_read_terminal = 1;   // semaforo per la syscall read (SYS5)
+int sem_write_printer = 1;   // semafori per le syscall write (SYS3 e SYS4)
+int sem_write_terminal = 1;
+int sem_read_terminal = 1;   // semaforo per la syscall read (SYS5)
 
 void init_swap_asid(){
     for (int i = 0; i < 8; i++)
@@ -72,7 +71,7 @@ void rw_flash(int operation, int asid, unsigned int vpn){
     //if (operation == FLASHWRITE){
     flashdev->data0 = &(swap_pool[blocknumber]);    // swap_pool + index
     size_t cmd = operation | blocknumber;
-    SYSCALL(DOIO, &(flashdev->command), operation, 0);
+    SYSCALL(DOIO, (int)&(flashdev->command), cmd, 0);
     if (flashdev->status != READY){        // c'e' un errore ==> program trap ==> TERMINATE       
         SYSCALL(TERMPROCESS,0,0,0);
     }
@@ -87,7 +86,7 @@ void update_swap_pool(int index_swap, unsigned int vpn, support_t *sup){
 
 void pager(){
     support_t *sup = (support_t *) SYSCALL(GETSUPPORTPTR,0,0,0);
-    int code = CAUSE_GET_EXCODE(sup->sup_exceptState->cause);
+    int code = CAUSE_GET_EXCCODE(sup->sup_exceptState->cause);
     if (code == EXC_MOD)
         SYSCALL(TERMPROCESS,0,0,0);
     else{

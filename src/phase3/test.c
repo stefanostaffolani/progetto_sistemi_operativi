@@ -1,4 +1,4 @@
-#include "exception_support.c"
+#include "exception_support.h"
 
 static inline void init_pagtable(unsigned int asid, support_t *sup){
     int i;

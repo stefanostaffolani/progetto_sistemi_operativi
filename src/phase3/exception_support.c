@@ -47,7 +47,7 @@ void syscall_exception_handler(support_t *support, state_t *except_state){
 }
 
 void program_trap_exception_handler(support_t *support){   // Terminate process with SYS2 (do V op in sem_swap)
-    Terminate_SYS2();
+    Terminate_SYS2(support);
 }
 
 void Get_TOD_SYS1(state_t *except_state){

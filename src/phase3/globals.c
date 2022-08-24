@@ -28,6 +28,13 @@ passupvector_t* PassUpVector;
 /* memory info to calculate ramtop*/
 devregarea_t* memInfo;
 
+swap_t swap_pool[POOLSIZE];
+int sem_swap;   // per mutua esclusione sulla swap pool
+int swap_asid[8];
+int sem_write_printer;   // semafori per le syscall write (SYS3 e SYS4)
+int sem_write_terminal;
+int sem_read_terminal;   // semaforo per la syscall read (SYS5)
+
 void memcpy(void *dest, const void *src, size_t n){
     for (size_t i = 0; i < n; i++){
         ((unsigned char*)dest)[i] = ((unsigned char*)src)[i];

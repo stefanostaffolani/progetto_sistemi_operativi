@@ -1,5 +1,4 @@
-#include "pager.c"
-#include "/usr/include/umps3/umps/arch.h"
+#include "pager.h"
 
 #define PRINTCHR 2    // come definito in pops a pagina 39
 #define SENDCHAR 2    // pops capitolo 5.7
