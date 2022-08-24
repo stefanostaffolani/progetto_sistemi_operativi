@@ -1,131 +1,79 @@
-#include "pager.c"
-#include "/usr/include/umps3/umps/arch.h"
+#include "exception.h"
 
-#define PRINTCHR 2    // come definito in pops a pagina 39
-#define SENDCHAR 2    // pops capitolo 5.7
-#define RECVCHAR 2    // pops capitolo 5.7
-
-void exception_handler(){
-    support_t *support = (support_t *) SYSCALL(GETSUPPORTPTR,0,0,0);
-    state_t *except_state = &support->sup_exceptState[GENERALEXCEPT];
-    int cause = CAUSE_GET_EXCCODE(except_state->cause);
-    switch (cause){
-    case 8:       // syscall exception
-        syscall_exception_handler(support, except_state);
+void exceptionHandler(){
+    processor_state = (state_t*) BIOSDATAPAGE;
+    const unsigned int CAUSE_CODE = CAUSE_GET_EXCCODE(processor_state->cause);
+    unsigned int cause = processor_state->cause & CAUSE_IP_MASK;
+    switch (CAUSE_CODE){
+    case EXC_SYS:
+        syscall_exception(processor_state);
+        break;
+    case EXC_INT:
+        interrupt_exception(cause, processor_state);
+        break;
+    case EXC_MOD:
+    case EXC_TLBL:
+    case EXC_TLBS:
+        pass_up_or_die(PGFAULTEXCEPT, processor_state);   // TLBexc...
         break;
     default:
-        program_trap_exception_handler(support);
+        pass_up_or_die(GENERALEXCEPT, processor_state);   // program trap exc...
         break;
     }
-    except_state->pc_epc += WORDLEN;
-    except_state->reg_t9 += WORDLEN;
-    LDST(except_state);
 }
 
-void syscall_exception_handler(support_t *support, state_t *except_state){
-    const int a0 = except_state->reg_a0;
-    int retval;
-    switch (a0){
-    case 1:                             // Get_TOD
-        Get_TOD_SYS1(except_state);
-        break;
-    case 2:                             // Terminate
-        Terminate_SYS2(support);
-        break;
-    case 3:                             // Write_to_Printer
-        retval = Write_to_Printer_SYS3(support);
-        except_state->reg_v0 = retval;
-        break;
-    case 4:                             // Write_to_Terminal
-        retval = Write_to_Terminal_SYS4(support);
-        except_state->reg_v0 = retval;    
-        break;
-    case 5:                             // Read_from_Terminal
-        retval = Read_from_Terminal_SYS5(support);
-        except_state->reg_v0 = retval;
-        break;
-    default:                            // kill process ==> this is an error
-        program_trap_exception_handler(support);
-        break;
-    }
+void syscall_exception(state_t *exception_state){
+    unsigned int a0 = exception_state->reg_a0;
+    unsigned int a1 = exception_state->reg_a1;
     
-}
-
-void program_trap_exception_handler(support_t *support){   // Terminate process with SYS2 (do V op in sem_swap)
-    Terminate_SYS2();
-}
-
-void Get_TOD_SYS1(state_t except_state){
-    cpu_t TOD;
-    STCK(&TOD);
-    except_state->reg_v0 = TOD;
-}
-
-void Terminate_SYS2(support_t *support){   // capire se va incrementato il PC anche qua (visto che viene fatto dal kernel)
-    if(get_swap_asid(support->sup_asid)){
-        SYSCALL(VERHOGEN, (int)&sem_swap, 0, 0);    // controllare se aggiusta da solo il semaforo
-        for(int i = 0; i < POOLSIZE; i++){
-            if(swap_pool[i] == support->sup_asid)    // ottimizzazione
-                swap_pool[i] = -1;
-        }
-        update_swap_asid(0,support->sup_asid);
+    if ((exception_state->status & STATUS_KUp) == STATUS_KUp){ //il processo non e' in kernel mode
+        exception_state->cause = (exception_state->cause & ~CAUSE_EXCCODE_MASK) | (EXC_RI << CAUSE_EXCCODE_BIT);
+        pass_up_or_die(GENERALEXCEPT, exception_state);
     }
-    SYSCALL(TERMPROCESS,0,0,0);
+
+    switch (a0){
+    case CREATEPROCESS:
+        Create_Process_NSYS1(exception_state);
+        break;
+    case TERMPROCESS:
+        Terminate_Process_NSYS2(a1,exception_state);
+        break;
+    case PASSEREN:
+        Passeren_NSYS3((int *) a1,exception_state);
+        break;
+    case VERHOGEN:
+        Verhogen_NSYS4((int *) a1,exception_state);
+        break;
+    case DOIO:
+        DO_IO_Device_NSYS5(exception_state);
+        break;
+    case GETTIME:
+        Get_CPU_Time_NSYS6(exception_state);
+        break;
+    case CLOCKWAIT:
+        Wait_For_Clock_NSYS7(exception_state);
+        break;
+    case GETSUPPORTPTR:
+        Get_SUPPORT_Data_NSYS8(exception_state);
+        break;
+    case GETPROCESSID:
+        Get_Process_ID_NSYS9(exception_state, a1);
+        break;
+    case YIELD:
+        Yield_NSYS10(exception_state);
+        break;
+    default:
+        pass_up_or_die(GENERALEXCEPT, exception_state);
+    }
 }
 
-int Write_to_Printer_SYS3(support_t *support){
-    size_t len = (size_t)support->sup_exceptState[GENERALEXCEPT].reg_a1;
-    char *c = (char *)support->sup_exceptState[GENERALEXCEPT].reg_a2;      // stringa da scrivere
-    //int retval;
-    dtpreg_t *device = (dtpreg_t *)DEV_REG_ADDR(IL_PRINTER, support->sup_asid-1);     // il device e' asid-1 perche' i device sono 8 (da 0 a 7) e i processi sono 8 (da 1 a 8)
-    SYSCALL(PASSEREN,(int)&sem_write_printer,0,0);                         // mutua esclusione per chiamare la DOIO
-    for(size_t i = 0; i < len; i++){
-        device->data0 = c[i];
-        int status = SYSCALL(DOIO, (int)&device->command, PRINTCHR, 0);
-        if (status != READY){
-            SYSCALL(VERHOGEN, (int)&sem_write_printer, 0, 0);
-            return -status;
-        }
+void pass_up_or_die(int except_type, state_t *exception_state){    
+    if (currentProcess->p_supportStruct == NULL){
+        Terminate_Process_NSYS2(0, processor_state);
+    }else{
+        // Copy the saved exception state from the BIOS Data Page to the correct sup exceptState field of the Current Process
+        memcpy(&currentProcess->p_supportStruct->sup_exceptState[except_type], exception_state, sizeof(state_t));
+        context_t support = currentProcess->p_supportStruct->sup_exceptContext[except_type];
+        LDCXT(support.stackPtr, support.status, support.pc);
     }
-    SYSCALL(VERHOGEN,(int)&sem_write_printer,0,0);
-    return len;
-}
-
-int Write_to_Terminal_SYS4(support_t *support){
-    size_t len = (size_t)support->sup_exceptState[GENERALEXCEPT].reg_a1;
-    char *c = (char *)support->sup_exceptState[GENERALEXCEPT].reg_a2;
-    dtpreg_t *device = (dtpreg_t *)DEV_REG_ADDR(IL_TERMINAL, support->sup_asid-1);
-    SYSCALL(PASSEREN, (int)&sem_write_terminal, 0, 0);
-    for(size_t i = 0; i < len; i++){
-        memaddr value = PRINTCHR | (memaddr)(c[i] << 8);       // pops 5.7 transmitted char non sono i primi 8 bit ma i secondi da dx
-        int status = SYSCALL(DOIO, (int)&((termreg_t *)device)->transm_command, (int)value, 0;
-        if((status & 0x000000FF) != READY){         // 0x000000FF mi isola il primo byte
-            SYSCALL(VERHOGEN,(int)&sem_write_terminal,0,0);
-            return -status;
-        }
-    }
-    SYSCALL(VERHOGEN,(int)&sem_write_terminal,0,0);
-    return len;
-}
-
-int Read_from_Terminal_SYS5(support_t *support){
-    char *buffer = support->sup_exceptState[GENERALEXCEPT].reg_a1;
-    //size_t len = support->sup_exceptState[GENERALEXCEPT].reg_a2;
-    termreg_t *terminal = DEV_REG_ADDR(IL_TERMINAL, support->sup_asid-1);
-    SYSCALL(PASSEREN, (int)&sem_read_terminal, 0, 0);
-    size_t i = 0;
-    char c = '\0';
-    while(c != '\n'){
-        int status = SYSCALL(DOIO, (int)&(terminal->recv_command), RECVCHAR, 0);   // cfr capitolo 5.7 pops
-        if((status & 0x000000FF) != READY){     // controllare se usare ready o RECVCHAR (5)
-            SYSCALL(VERHOGEN, (int)&sem_read_terminal, 0, 0);
-            return -status;
-        }
-        c = (char) (0x0000FF00 & status);
-        *(buffer + i) = c;
-        i++;
-    }
-    SYSCALL(VERHOGEN, (int)&sem_read_terminal, 0, 0);
-    *(buffer + i) = '\0';                      // controllare se necessario
-    return i;
 }
