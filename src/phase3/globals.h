@@ -1,5 +1,5 @@
-#include "pandos_types.h"
-#include "pandos_const.h"
+#include "../phase2/pandos_types.h"
+#include "../phase2/pandos_const.h"
 #include "asl.h"
 #include "pcb.h"
 #include "/usr/include/umps3/umps/cp0.h"
@@ -19,7 +19,7 @@ extern pcb_PTR currentProcess;
 extern passupvector_t* PassUpVector;
 extern devregarea_t* memInfo;
 extern cpu_t interval_timer;
-extern int dSemaphores[MAXSEM];
+extern int dSemaphores[MAXPROC];
 
 void breakpoint();
 void memcpy(void *, const void *, size_t);

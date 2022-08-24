@@ -1,4 +1,4 @@
-#include "exception.c"
+#include "exception_support.c"
 
 static inline void init_pagtable(unsigned int asid, support_t *sup){
     int i;
@@ -11,7 +11,7 @@ static inline void init_pagtable(unsigned int asid, support_t *sup){
 }
 
 
-int main(){
+int test(){
     // inizializzare le strutture dati
     init_swap_pool();
     init_swap_asid();
@@ -25,17 +25,17 @@ int main(){
     state.reg_sp = (memaddr) USERSTACKTOP;
     state.pc_epc = (memaddr) UPROCSTARTADDR;
     state.reg_t9 = (memaddr) UPROCSTARTADDR;
-    state.status = IEPON | IMON | TEBITON | USERPON
+    state.status = IEPON | IMON | TEBITON | USERPON;
 
     for(int i=0;i<UPROCMAX;i++){       // l'asid va da 1 a 8 inclusi
         state.entry_hi = (i+1) << ASIDSHIFT;
         support_array[i].sup_asid = i+1;
         support_array[i].sup_exceptContext[0].pc = (memaddr) uTLB_RefillHandler;
         support_array[i].sup_exceptContext[0].stackPtr = (memaddr) ramtop - (sup.sup_asid * PAGESIZE * 2) + PAGESIZE;
-        support_array[i].sup_exceptContext[0].status = state;
+        support_array[i].sup_exceptContext[0].status = state.status;
         support_array[i].sup_exceptContext[1].pc = (memaddr) exception_handler;
         support_array[i].sup_exceptContext[1].stackPtr = (memaddr) ramtop - (sup.sup_asid * PAGESIZE * 2);
-        support_array[i].sup_exceptContext[1].status = state;
+        support_array[i].sup_exceptContext[1].status = state.status;
 
         // funzione che inizializza la pagetable
         init_pagtable(i+1, &support_array[i]);

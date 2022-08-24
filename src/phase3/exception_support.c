@@ -55,9 +55,9 @@ void program_trap_exception_handler(support_t *support){   // Terminate process 
     Terminate_SYS2();
 }
 
-void Get_TOD_SYS1(state_t except_state){
+void Get_TOD_SYS1(state_t *except_state){
     cpu_t TOD;
-    STCK(&TOD);
+    STCK(TOD);
     except_state->reg_v0 = TOD;
 }
 
@@ -65,8 +65,8 @@ void Terminate_SYS2(support_t *support){   // capire se va incrementato il PC an
     if(get_swap_asid(support->sup_asid)){
         SYSCALL(VERHOGEN, (int)&sem_swap, 0, 0);    // controllare se aggiusta da solo il semaforo
         for(int i = 0; i < POOLSIZE; i++){
-            if(swap_pool[i] == support->sup_asid)    // ottimizzazione
-                swap_pool[i] = -1;
+            if(swap_pool[i].sw_asid == support->sup_asid)    // ottimizzazione
+                swap_pool[i].sw_asid = NOPROC;
         }
         update_swap_asid(0,support->sup_asid);
     }
@@ -98,7 +98,7 @@ int Write_to_Terminal_SYS4(support_t *support){
     SYSCALL(PASSEREN, (int)&sem_write_terminal, 0, 0);
     for(size_t i = 0; i < len; i++){
         memaddr value = PRINTCHR | (memaddr)(c[i] << 8);       // pops 5.7 transmitted char non sono i primi 8 bit ma i secondi da dx
-        int status = SYSCALL(DOIO, (int)&((termreg_t *)device)->transm_command, (int)value, 0;
+        int status = SYSCALL(DOIO, (int)&((termreg_t *)device)->transm_command, (int)value, 0);
         if((status & 0x000000FF) != READY){         // 0x000000FF mi isola il primo byte
             SYSCALL(VERHOGEN,(int)&sem_write_terminal,0,0);
             return -status;

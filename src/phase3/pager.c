@@ -1,20 +1,15 @@
-#include "pandos_const.h"
-#include "pandos_types.h"
-#include "/usr/include/umps3/umps/types.h"
-#include "/usr/include/umps3/umps/const.h"
-#include "phase2/globals.h"
+#include "pager.h"
 
 // TODO: controllare tutti gli include onde evitare errori come in phase2!!!
 
-swap_t swap_pool[POOLSIZE];
 
-int sem_swap = 1;   // per mutua esclusione sulla swap pool
+sem_swap = 1;   // per mutua esclusione sulla swap pool
 
-int swap_asid[8];
+swap_asid[8];
 
-int sem_write_printer = 1;   // semafori per le syscall write (SYS3 e SYS4)
-int sem_write_terminal = 1;
-int sem_read_terminal = 1;   // semaforo per la syscall read (SYS5)
+sem_write_printer = 1;   // semafori per le syscall write (SYS3 e SYS4)
+sem_write_terminal = 1;
+sem_read_terminal = 1;   // semaforo per la syscall read (SYS5)
 
 void init_swap_asid(){
     for (int i = 0; i < 8; i++)
@@ -103,7 +98,7 @@ void pager(){
         if(swap_pool[index_swap].sw_asid != NOPROC){
             setSTATUS(DISABLEINTS);   // disabilito gli interrupt      
             swap_pool[index_swap].sw_pte->pte_entryLO &= ~VALIDON;    // VALIDON == 512 == 2^9 negando ottengo il registro entryLO con il bit V uguale a 0
-            pteEntry_t sp = swap_pool[index_swap].sw_pte;
+            pteEntry_t sp = *swap_pool[index_swap].sw_pte;
             setENTRYHI(sp.pte_entryHI);
             TLBP();
             if (!(getINDEX() & PRESENTFLAG)) {
@@ -118,7 +113,7 @@ void pager(){
         update_swap_pool(index_swap, vpn, sup);     // aggiorna la swap pool
         setSTATUS(DISABLEINTS);   // disabilito gli interrupt
         unsigned int vpn_index = get_vpn_index(vpn);
-        sup->sup_privatePgTbl[vpn_index].pte_entryLO = (VALIDON | DIRTYON | (&(swap_pool[index_swap]) << ENTRYLO_PFN_BIT));    // mette il bit V a 1
+        sup->sup_privatePgTbl[vpn_index].pte_entryLO = (VALIDON | DIRTYON | (swap_pool[index_swap].sw_pte->pte_entryLO << ENTRYLO_PFN_BIT));    // mette il bit V a 1
         //pteEntry_t sp = swap_pool[index_swap].sw_pte;
         setENTRYHI(sup->sup_privatePgTbl[vpn].pte_entryHI);
         TLBP();
