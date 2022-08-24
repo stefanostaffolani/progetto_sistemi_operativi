@@ -25,8 +25,8 @@ int main(){
     state.reg_sp = (memaddr) USERSTACKTOP;
     state.pc_epc = (memaddr) UPROCSTARTADDR;
     state.reg_t9 = (memaddr) UPROCSTARTADDR;
-    setSTATUS(IECON | TEBITON);    // deve essere in usermode
-    
+    state.status = IEPON | IMON | TEBITON | USERPON
+
     for(int i=0;i<UPROCMAX;i++){       // l'asid va da 1 a 8 inclusi
         state.entry_hi = (i+1) << ASIDSHIFT;
         support_array[i].sup_asid = i+1;
@@ -38,6 +38,7 @@ int main(){
         support_array[i].sup_exceptContext[1].status = state;
 
         // funzione che inizializza la pagetable
+        init_pagtable(i+1, &support_array[i]);
 
         //sup.sup_exceptState[PGFAULTEXCEPT] = 
         SYSCALL(CREATEPROCESS, (int)&state, PROCESS_PRIO_LOW, (int)&sup);
