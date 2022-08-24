@@ -1,9 +1,4 @@
-#include "pager.c"
-#include "/usr/include/umps3/umps/arch.h"
-
-#define PRINTCHR 2    // come definito in pops a pagina 39
-#define SENDCHAR 2    // pops capitolo 5.7
-#define RECVCHAR 2    // pops capitolo 5.7
+#include "exception_support.h"
 
 void exception_handler(){
     support_t *support = (support_t *) SYSCALL(GETSUPPORTPTR,0,0,0);
