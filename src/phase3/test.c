@@ -2,12 +2,12 @@
 
 static inline void init_pagtable(unsigned int asid, support_t *sup){
     int i;
-    //unsigned int start = 0x80000;
     for(i=0;i<MAXPAGES-1;i++){
         sup->sup_privatePgTbl[i].pte_entryHI = ((PRESENTFLAG + (i << VPNSHIFT)) | asid);
         sup->sup_privatePgTbl[i].pte_entryLO = (DIRTYON | VALIDON);
     }
-    sup->sup_privatePgTbl[i].pte_entryHI  = (0xBFFFF000 | asid ) | (DIRTYON | VALIDON);
+    sup->sup_privatePgTbl[i].pte_entryHI  = (0xBFFFF000 | asid );      // ((USERSTACKTOP-1) & 0xFFFFF000) | asid
+    sup->sup_privatePgTbl[i].pte_entryLO = (DIRTYON | VALIDON);
 }
 
 
