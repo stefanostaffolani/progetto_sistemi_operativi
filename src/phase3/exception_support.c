@@ -65,6 +65,7 @@ void Terminate_SYS2(support_t *support){   // capire se va incrementato il PC an
         }
         update_swap_asid(0,support->sup_asid);
     }
+    SYSCALL(VERHOGEN, (int)&master_semaphore, 0, 0);
     SYSCALL(TERMPROCESS,0,0,0);
 }
 

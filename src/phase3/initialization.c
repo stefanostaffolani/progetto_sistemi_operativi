@@ -1,10 +1,12 @@
+#include "test.h"
 #include "exception.h"
+#include "pager.h"
 
-extern void uTLB_RefillHandler();
+//extern void uTLB_RefillHandler();
 
-extern void exceptionHandler();  
+//extern void exceptionHandler();  
 
-extern void test(); /* test function in p2test*/
+//extern void test(); /* test function in p2test*/
 
 int main(){
 

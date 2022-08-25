@@ -1,6 +1,6 @@
-#include "exception_support.h"
+#include "test.h"
 
-static inline void init_pagtable(unsigned int asid, support_t *sup){
+void init_pagtable(unsigned int asid, support_t *sup){
     int i;
     for(i=0;i<MAXPAGES-1;i++){
         sup->sup_privatePgTbl[i].pte_entryHI = ((PRESENTFLAG + (i << VPNSHIFT)) | asid);
@@ -16,6 +16,7 @@ int test(){
     init_swap_pool();
     init_swap_asid();
     
+    master_semaphore = 0;
     state_t state;
     support_t sup;
     memaddr ramtop;
@@ -26,7 +27,7 @@ int test(){
     state.pc_epc = (memaddr) UPROCSTARTADDR;
     state.reg_t9 = (memaddr) UPROCSTARTADDR;
     state.status = IEPON | IMON | TEBITON | USERPON;
-
+    //klog_print("sto per fare il ciclo for in test\n");
     for(int i=0;i<UPROCMAX;i++){       // l'asid va da 1 a 8 inclusi
         state.entry_hi = (i+1) << ASIDSHIFT;
         support_array[i].sup_asid = i+1;
@@ -40,8 +41,11 @@ int test(){
         // funzione che inizializza la pagetable
         init_pagtable(i+1, &support_array[i]);
 
-        //sup.sup_exceptState[PGFAULTEXCEPT] = 
+        klog_print("sto per fare CREATEPROCESS\n");
         SYSCALL(CREATEPROCESS, (int)&state, PROCESS_PRIO_LOW, (int)&sup);
+    }
+    for (int i = 0; i < UPROCMAX; i++){
+        SYSCALL(PASSEREN, (int)&master_semaphore, 0, 0);
     }
     SYSCALL(TERMPROCESS,0,0,0);
     return 0;
