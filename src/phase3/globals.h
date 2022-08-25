@@ -32,6 +32,7 @@ extern int swap_asid[8];
 extern int sem_write_printer;   // semafori per le syscall write (SYS3 e SYS4)
 extern int sem_write_terminal;
 extern int sem_read_terminal;   // semaforo per la syscall read (SYS5)
+extern memaddr swap_pool_address;
 
 void breakpoint();
 void memcpy(void *, const void *, size_t);

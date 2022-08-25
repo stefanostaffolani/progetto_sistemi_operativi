@@ -44,4 +44,5 @@ int test(){
         SYSCALL(CREATEPROCESS, (int)&state, PROCESS_PRIO_LOW, (int)&sup);
     }
     SYSCALL(TERMPROCESS,0,0,0);
+    return 0;
 }

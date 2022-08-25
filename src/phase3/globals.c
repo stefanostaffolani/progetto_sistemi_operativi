@@ -34,6 +34,7 @@ int swap_asid[8];
 int sem_write_printer;   // semafori per le syscall write (SYS3 e SYS4)
 int sem_write_terminal;
 int sem_read_terminal;   // semaforo per la syscall read (SYS5)
+memaddr swap_pool_address;
 
 void memcpy(void *dest, const void *src, size_t n){
     for (size_t i = 0; i < n; i++){

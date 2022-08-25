@@ -104,9 +104,9 @@ int Write_to_Terminal_SYS4(support_t *support){
 }
 
 int Read_from_Terminal_SYS5(support_t *support){
-    char *buffer = support->sup_exceptState[GENERALEXCEPT].reg_a1;
+    char *buffer = (char *)support->sup_exceptState[GENERALEXCEPT].reg_a1;
     //size_t len = support->sup_exceptState[GENERALEXCEPT].reg_a2;
-    termreg_t *terminal = DEV_REG_ADDR(IL_TERMINAL, support->sup_asid-1);
+    termreg_t *terminal = (termreg_t *) DEV_REG_ADDR(IL_TERMINAL, support->sup_asid-1);
     SYSCALL(PASSEREN, (int)&sem_read_terminal, 0, 0);
     size_t i = 0;
     char c = '\0';

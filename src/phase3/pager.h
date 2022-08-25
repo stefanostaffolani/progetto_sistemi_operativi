@@ -7,6 +7,6 @@ void init_swap_pool();
 unsigned int get_vpn_index(unsigned int);
 int replace_algo();
 void uTLB_RefillHandler();
-void rw_flash(int, int, unsigned int);
+void rw_flash(int, int, unsigned int, memaddr);
 void update_swap_pool(int, unsigned int, support_t *);
 void pager();
