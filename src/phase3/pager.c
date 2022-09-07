@@ -56,7 +56,7 @@ int replace_algo(){
 /* One can place debug calls here, but not calls to print */
 void uTLB_RefillHandler() {
     state_t *saved_state = (state_t *)BIOSDATAPAGE;
-    unsigned int vpn = saved_state->entry_hi >> 12;  /* prendo campo VPN */                
+    unsigned int vpn = saved_state->entry_hi >> VPNSHIFT;  /* prendo campo VPN */                
     size_t index = get_vpn_index(vpn);
     // forse serve un controllo
     pteEntry_t pg = currentProcess->p_supportStruct->sup_privatePgTbl[index];
@@ -86,6 +86,7 @@ void update_swap_pool(int index_swap, unsigned int vpn, support_t *sup){
 }
 
 void pager(){
+    klog_print("inizio pager\n");
     support_t *sup = (support_t *) SYSCALL(GETSUPPORTPTR,0,0,0);
     int code = CAUSE_GET_EXCCODE(sup->sup_exceptState->cause);
     if (code == EXC_MOD)
