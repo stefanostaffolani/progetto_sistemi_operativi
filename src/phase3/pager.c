@@ -1,15 +1,6 @@
 #include "pager.h"
-
-// TODO: controllare tutti gli include onde evitare errori come in phase2!!!
-
-int sem_swap = 1;   // per mutua esclusione sulla swap pool
-
-int swap_asid[8];
-
-int sem_write_printer = 1;                  // semafori per le syscall write (SYS3 e SYS4)
-int sem_write_terminal = 1;
-int sem_read_terminal = 1;                  // semaforo per la syscall read (SYS5)
-memaddr swap_pool_address = 0x60000000;     // il valore deve essere compreso tra 0x40000000 e 0x80000000
+   
+//TODO: controllare gli include
 
 void init_swap_asid(){
     for (int i = 0; i < 8; i++)
@@ -55,11 +46,13 @@ int replace_algo(){
 /* TLB-Refill Handler */
 /* One can place debug calls here, but not calls to print */
 void uTLB_RefillHandler() {
+    klog_print("Utlb Refill\n");
     state_t *saved_state = (state_t *)BIOSDATAPAGE;
     unsigned int vpn = saved_state->entry_hi >> VPNSHIFT;  /* prendo campo VPN */                
     size_t index = get_vpn_index(vpn);
     // forse serve un controllo
     pteEntry_t pg = currentProcess->p_supportStruct->sup_privatePgTbl[index];
+    klog_print_hex(index);
     setENTRYHI(pg.pte_entryHI);
     setENTRYLO(pg.pte_entryLO);
     TLBWR();

@@ -1,12 +1,12 @@
 #include "exception_support.h"
 
-void exception_handler(){
+void exception_handler_support(){
     support_t *support = (support_t *) SYSCALL(GETSUPPORTPTR,0,0,0);
     state_t *except_state = &support->sup_exceptState[GENERALEXCEPT];
     int cause = CAUSE_GET_EXCCODE(except_state->cause);
     switch (cause){
     case 8:       // syscall exception
-        syscall_exception_handler(support, except_state);
+        syscall_exception_handler_support(support, except_state);
         break;
     default:
         program_trap_exception_handler(support);
@@ -17,7 +17,7 @@ void exception_handler(){
     LDST(except_state);
 }
 
-void syscall_exception_handler(support_t *support, state_t *except_state){
+void syscall_exception_handler_support(support_t *support, state_t *except_state){
     const int a0 = except_state->reg_a0;
     int retval;
     switch (a0){
