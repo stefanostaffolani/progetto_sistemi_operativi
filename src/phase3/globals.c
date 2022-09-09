@@ -34,7 +34,7 @@ int swap_asid[8];
 int sem_write_printer = 1;   // semafori per le syscall write (SYS3 e SYS4)
 int sem_write_terminal = 1;
 int sem_read_terminal = 1;   // semaforo per la syscall read (SYS5)
-int master_semaphore = 1;
+int master_semaphore = 0;
 memaddr swap_pool_address = 0x60000000;   // il valore deve essere compreso tra 0x40000000 e 0x80000000
 
 void memcpy(void *dest, const void *src, size_t n){

@@ -6,7 +6,7 @@ void scheduler(){
         LDST(&(currentProcess->p_s));
     }else if (!emptyProcQ(&low_priority_queue)){   // la coda ad alta priorita' e' vuota, quella a bassa priorita' no
         currentProcess =  removeProcQ(&low_priority_queue);
-        klog_print("scheduler lowq\n");
+        //klog_print("scheduler lowq\n");
         // Load 5 milliseconds on the PLT. [Section 4.1.4-pops]
         setTIMER(TIMESLICE * (*((cpu_t*) TIMESCALEADDR)));
         STCK(startTime);
