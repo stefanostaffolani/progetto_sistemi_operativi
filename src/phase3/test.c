@@ -4,12 +4,12 @@ void init_pagtable(unsigned int asid, support_t *sup){
     int i;
     klog_print("entro in init pgtb\n");
     for(i=0;i<MAXPAGES-1;i++){
-        sup->sup_privatePgTbl[i].pte_entryHI = ((KUSEG | (i << VPNSHIFT)) | asid);
-        klog_print_hex(sup->sup_privatePgTbl[i].pte_entryHI);
-        klog_print("\n");
+        sup->sup_privatePgTbl[i].pte_entryHI = ((KUSEG | (i << VPNSHIFT)) | (asid << ASIDSHIFT));
+        //klog_print_hex(sup->sup_privatePgTbl[i].pte_entryHI);
+        //klog_print("\n");
         sup->sup_privatePgTbl[i].pte_entryLO = DIRTYON;
     }
-    sup->sup_privatePgTbl[i].pte_entryHI  = (0x3FFFF000 | asid );      // ((USERSTACKTOP-1) & 0xFFFFF000) | asid
+    sup->sup_privatePgTbl[i].pte_entryHI  = (0xBFFFF000 | (asid << ASIDSHIFT) );      // ((USERSTACKTOP-1) & 0xFFFFF000) | asid
     sup->sup_privatePgTbl[i].pte_entryLO = DIRTYON;
 }
 

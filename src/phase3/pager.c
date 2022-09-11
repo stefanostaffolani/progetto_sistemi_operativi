@@ -85,13 +85,14 @@ void pager(){
     if (code == EXC_MOD)
         SYSCALL(TERMPROCESS,0,0,0);
     else{
-        update_swap_asid(1,sup->sup_asid);
+        update_swap_asid(1,sup->sup_asid);         // value per indicare se c'e' un processo nella swap pool
         SYSCALL(PASSEREN, (int)&sem_swap, 0, 0);
         unsigned int vpn = sup->sup_exceptState->entry_hi >> VPNSHIFT;
         int index_swap = replace_algo();      // indice di frame
+        klog_print("ho fatto replace algo\n");
         memaddr frame_addr = swap_pool_address + (index_swap * PAGESIZE);
         if(swap_pool[index_swap].sw_asid != NOPROC){
-            setSTATUS(DISABLEINTS);   // disabilito gli interrupt      
+            setSTATUS(DISABLEINTS & getSTATUS());   // disabilito gli interrupt      
             swap_pool[index_swap].sw_pte->pte_entryLO &= ~VALIDON;    // VALIDON == 512 == 2^9 negando ottengo il registro entryLO con il bit V uguale a 0
             pteEntry_t sp = *swap_pool[index_swap].sw_pte;
             setENTRYHI(sp.pte_entryHI);
@@ -101,25 +102,33 @@ void pager(){
                 setENTRYLO(sp.pte_entryLO);
                 TLBWI();
             }
-            setSTATUS(IECON);
+            setSTATUS(IECON | getSTATUS());
+            klog_print("sto per fare rw_flash dentro if\n");
             rw_flash(FLASHWRITE, swap_pool[index_swap].sw_asid, swap_pool[index_swap].sw_pte->pte_entryHI >> VPNSHIFT, frame_addr);
         }
+        //breakpoint();
         rw_flash(FLASHREAD, sup->sup_asid, vpn, frame_addr);
+        //klog_print("ho fatto rw_flash read\n");
         update_swap_pool(index_swap, vpn, sup);     // aggiorna la swap pool
-        setSTATUS(DISABLEINTS);   // disabilito gli interrupt
+        klog_print("updated swap pool\n");
+        breakpoint();
+        setSTATUS(DISABLEINTS & getSTATUS());   // disabilito gli interrupt
+        klog_print("setstatus done\n");
         unsigned int vpn_index = get_vpn_index(vpn);
         sup->sup_privatePgTbl[vpn_index].pte_entryLO = (VALIDON | DIRTYON | frame_addr);    // mette il bit V a 1
         //pteEntry_t sp = swap_pool[index_swap].sw_pte;
         setENTRYHI(sup->sup_privatePgTbl[vpn].pte_entryHI);
-        TLBP();
+        TLBP();                                               //TODO: aggiungere il funzionamento
         if (!(getINDEX() & PRESENTFLAG)) {
             setENTRYHI(sup->sup_privatePgTbl[vpn].pte_entryHI);
             setENTRYLO(sup->sup_privatePgTbl[vpn].pte_entryLO);
             TLBWI();
         }
-        setSTATUS(IECON);
+        setSTATUS(IECON | getSTATUS());    //TODO: controllare questo!!!
+        klog_print("riabilitato gli interrupt\n");
         SYSCALL(VERHOGEN, (int)&sem_swap, 0, 0);
         update_swap_asid(0,sup->sup_asid);
+        klog_print("end pager\n");
         LDST(sup->sup_exceptState);
     }   
 }
