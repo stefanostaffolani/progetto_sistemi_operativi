@@ -65,7 +65,13 @@ void rw_flash(int operation, int asid, unsigned int vpn, memaddr frame_addr){
     //if (operation == FLASHWRITE){
     flashdev->data0 = frame_addr;    // swap_pool + index
     size_t cmd = operation | blocknumber;
-    SYSCALL(DOIO, (int)&(flashdev->command), cmd, 0);
+    unsigned int status = SYSCALL(DOIO, (int)&(flashdev->command), cmd, 0);
+    klog_print("frame address: ");
+    klog_print_hex(frame_addr);
+    klog_print("\n");
+    klog_print("lo status della DOIO :\n");
+    klog_print_hex(status);
+    breakpoint();
     if (flashdev->status != READY){        // c'e' un errore ==> program trap ==> TERMINATE       
         SYSCALL(TERMPROCESS,0,0,0);
     }
@@ -108,10 +114,10 @@ void pager(){
         }
         //breakpoint();
         rw_flash(FLASHREAD, sup->sup_asid, vpn, frame_addr);
-        //klog_print("ho fatto rw_flash read\n");
+        klog_print("ho fatto rw_flash read\n");
         update_swap_pool(index_swap, vpn, sup);     // aggiorna la swap pool
         klog_print("updated swap pool\n");
-        breakpoint();
+        //breakpoint();
         setSTATUS(DISABLEINTS & getSTATUS());   // disabilito gli interrupt
         klog_print("setstatus done\n");
         unsigned int vpn_index = get_vpn_index(vpn);
