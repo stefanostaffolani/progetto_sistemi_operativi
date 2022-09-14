@@ -100,11 +100,19 @@ void rw_flash(int operation, int asid, unsigned int vpn, memaddr frame_addr){
 void update_swap_pool(int index_swap, unsigned int vpn, support_t *sup){
     memaddr vpn_index = get_vpn_index(vpn);
     swap_pool[index_swap].sw_asid = sup->sup_asid;
-    swap_pool[index_swap].sw_pageNo = vpn;
+    swap_pool[index_swap].sw_pageNo = (int)vpn;
     // klog_print("VPN UPDATE\n");
     // klog_print_hex(vpn_index);
     // klog_print("\n");
     swap_pool[index_swap].sw_pte = sup->sup_privatePgTbl + vpn_index;   // non serve & perche' e' gia' un array !!
+    klog_print("sw_asid: ");
+    klog_print_hex(swap_pool[index_swap].sw_asid);
+    klog_print("\nsw_pageNo: ");
+    klog_print_hex(swap_pool[index_swap].sw_pageNo);
+    klog_print("\nsw_pte_entry HI: ");
+    klog_print_hex(swap_pool[index_swap].sw_pte->pte_entryHI);
+    klog_print("\n");
+    breakpoint();
 }
 
 void pager(){
@@ -145,6 +153,7 @@ void pager(){
         //klog_print("setstatus done\n");
         unsigned int vpn_index = get_vpn_index(vpn);
         sup->sup_privatePgTbl[vpn_index].pte_entryLO = (VALIDON | DIRTYON | frame_addr);    // mette il bit V a 1
+        swap_pool[index_swap].sw_pte->pte_entryLO = (VALIDON | DIRTYON | frame_addr);       // perche' non lo settiamo in swap pool update
         //pteEntry_t sp = swap_pool[index_swap].sw_pte;
         setENTRYHI(sup->sup_privatePgTbl[vpn_index].pte_entryHI);
         TLBP();                                               //TODO: aggiungere il funzionamento
@@ -154,7 +163,7 @@ void pager(){
             TLBWI();
         }
         setSTATUS(IECON | getSTATUS());    //TODO: controllare questo!!!
-        klog_print("riabilitato gli interrupt\n");
+        klog_print("riabilitati gli interrupt\n");
         SYSCALL(VERHOGEN, (int)&sem_swap, 0, 0);
         update_swap_asid(0,sup->sup_asid);
         klog_print("end pager\n");
