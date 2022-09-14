@@ -48,11 +48,31 @@ int replace_algo(){
 void uTLB_RefillHandler() {
     klog_print("Utlb Refill\n");
     state_t *saved_state = (state_t *)BIOSDATAPAGE;
-    unsigned int vpn = saved_state->entry_hi >> VPNSHIFT;  /* prendo campo VPN */                
-    size_t index = get_vpn_index(vpn);
-    // forse serve un controllo
-    pteEntry_t pg = currentProcess->p_supportStruct->sup_privatePgTbl[index];
+    unsigned int index = (saved_state->entry_hi & GETPAGENO) >> VPNSHIFT;  /* prendo campo VPN */
+    
+    klog_print("saved state entry hi: ");
+    klog_print_hex(saved_state->entry_hi);
+    klog_print("\n"); 
+    
+    klog_print("index: ");
     klog_print_hex(index);
+    klog_print("\n");                
+    //size_t index = get_vpn_index(vpn);
+    klog_print("sup except utlb: \n" );
+    klog_print_hex((memaddr)saved_state);
+    klog_print("\n");
+
+    // support_t *sup = (support_t *)SYSCALL(GETSUPPORTPTR, 0, 0, 0);
+    // size_t index = get_vpn_index(sup->sup_exceptState->entry_hi >> VPNSHIFT);
+    // forse serve un controllo
+    klog_print("prima di accedere alla support\n");
+    //klog_print_hex(index);
+    //pteEntry_t *p = currentProcess->p_supportStruct->sup_privatePgTbl;
+    pteEntry_t pg = currentProcess->p_supportStruct->sup_privatePgTbl[index];
+    klog_print("\nEntryHi : ");
+    klog_print_hex(pg.pte_entryHI);
+    klog_print("\n");
+    breakpoint();
     setENTRYHI(pg.pte_entryHI);
     setENTRYLO(pg.pte_entryLO);
     TLBWR();
@@ -80,7 +100,10 @@ void rw_flash(int operation, int asid, unsigned int vpn, memaddr frame_addr){
 void update_swap_pool(int index_swap, unsigned int vpn, support_t *sup){
     memaddr vpn_index = get_vpn_index(vpn);
     swap_pool[index_swap].sw_asid = sup->sup_asid;
-    swap_pool[index_swap].sw_pageNo = vpn >> VPNSHIFT;
+    swap_pool[index_swap].sw_pageNo = vpn;
+    // klog_print("VPN UPDATE\n");
+    // klog_print_hex(vpn_index);
+    // klog_print("\n");
     swap_pool[index_swap].sw_pte = sup->sup_privatePgTbl + vpn_index;   // non serve & perche' e' gia' un array !!
 }
 
@@ -91,8 +114,8 @@ void pager(){
     if (code == EXC_MOD)
         SYSCALL(TERMPROCESS,0,0,0);
     else{
-        update_swap_asid(1,sup->sup_asid);         // value per indicare se c'e' un processo nella swap pool
         SYSCALL(PASSEREN, (int)&sem_swap, 0, 0);
+        update_swap_asid(1,sup->sup_asid);         // value per indicare se c'e' un processo nella swap pool
         unsigned int vpn = sup->sup_exceptState->entry_hi >> VPNSHIFT;
         int index_swap = replace_algo();      // indice di frame
         klog_print("ho fatto replace algo\n");
@@ -119,15 +142,15 @@ void pager(){
         klog_print("updated swap pool\n");
         //breakpoint();
         setSTATUS(DISABLEINTS & getSTATUS());   // disabilito gli interrupt
-        klog_print("setstatus done\n");
+        //klog_print("setstatus done\n");
         unsigned int vpn_index = get_vpn_index(vpn);
         sup->sup_privatePgTbl[vpn_index].pte_entryLO = (VALIDON | DIRTYON | frame_addr);    // mette il bit V a 1
         //pteEntry_t sp = swap_pool[index_swap].sw_pte;
-        setENTRYHI(sup->sup_privatePgTbl[vpn].pte_entryHI);
+        setENTRYHI(sup->sup_privatePgTbl[vpn_index].pte_entryHI);
         TLBP();                                               //TODO: aggiungere il funzionamento
         if (!(getINDEX() & PRESENTFLAG)) {
-            setENTRYHI(sup->sup_privatePgTbl[vpn].pte_entryHI);
-            setENTRYLO(sup->sup_privatePgTbl[vpn].pte_entryLO);
+            setENTRYHI(sup->sup_privatePgTbl[vpn_index].pte_entryHI);
+            setENTRYLO(sup->sup_privatePgTbl[vpn_index].pte_entryLO);
             TLBWI();
         }
         setSTATUS(IECON | getSTATUS());    //TODO: controllare questo!!!
@@ -135,6 +158,13 @@ void pager(){
         SYSCALL(VERHOGEN, (int)&sem_swap, 0, 0);
         update_swap_asid(0,sup->sup_asid);
         klog_print("end pager\n");
+        breakpoint();
+        klog_print("sup except: \n" );
+        klog_print_hex((memaddr) &(sup->sup_exceptState[0]));
+        klog_print("\n");
+        klog_print("entryHI prima LDST :");
+        klog_print_hex(sup->sup_privatePgTbl[vpn_index].pte_entryHI);
+        klog_print("\n");
         LDST(sup->sup_exceptState);
     }   
 }

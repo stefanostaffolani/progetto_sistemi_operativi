@@ -12,13 +12,12 @@ void scheduler(){
         STCK(startTime);
         LDST(&(currentProcess->p_s));
     } else{   // sono entrambe vuote
-
         if (prCount == 0) //spegni la macchina
             HALT();     
         else if (prCount > 0 && sbCount > 0){   // aspetta...
             setSTATUS(ALLOFF | IECON | IMON);   //interrupts on and PLT off
             WAIT();
-        }else if (prCount > 0 && sbCount == 0){   // Deadlock
+        }else if (prCount > 0 && sbCount == 0){   // purtroppo Deadlock...
             klog_print("sto per andare in panic\n");
             PANIC();
         }
