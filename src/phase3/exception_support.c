@@ -2,22 +2,26 @@
 
 void exception_handler_support(){
     support_t *support = (support_t *) SYSCALL(GETSUPPORTPTR,0,0,0);
-    state_t *except_state = &support->sup_exceptState[GENERALEXCEPT];
-    int cause = CAUSE_GET_EXCCODE(except_state->cause);
+    const int cause = CAUSE_GET_EXCCODE(support->sup_exceptState[GENERALEXCEPT].cause);
+    klog_print("cause : ");
+    klog_print_hex(cause);
+    klog_print("\n");
+    breakpoint();
     switch (cause){
     case 8:       // syscall exception
-        syscall_exception_handler_support(support, except_state);
+        syscall_exception_handler_support(support);
         break;
     default:
         program_trap_exception_handler(support);
         break;
     }
-    except_state->pc_epc += WORDLEN;
-    except_state->reg_t9 += WORDLEN;
-    LDST(except_state);
+    LDST(&support->sup_exceptState[GENERALEXCEPT]);
 }
 
-void syscall_exception_handler_support(support_t *support, state_t *except_state){
+void syscall_exception_handler_support(support_t *support){
+    state_t *except_state = &support->sup_exceptState[GENERALEXCEPT];
+    except_state->pc_epc += WORDLEN;
+    except_state->reg_t9 += WORDLEN;
     const int a0 = except_state->reg_a0;
     int retval;
     switch (a0){
@@ -90,6 +94,8 @@ int Write_to_Printer_SYS3(support_t *support){
 int Write_to_Terminal_SYS4(support_t *support){
     size_t len = (size_t)support->sup_exceptState[GENERALEXCEPT].reg_a1;
     char *c = (char *)support->sup_exceptState[GENERALEXCEPT].reg_a2;
+    klog_print("entro in writeTerminal\n");
+    breakpoint();
     dtpreg_t *device = (dtpreg_t *)DEV_REG_ADDR(IL_TERMINAL, support->sup_asid-1);
     SYSCALL(PASSEREN, (int)&sem_write_terminal, 0, 0);
     for(size_t i = 0; i < len; i++){

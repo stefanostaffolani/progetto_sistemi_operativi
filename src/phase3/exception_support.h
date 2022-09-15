@@ -7,7 +7,7 @@
 
 void exception_handler_support();
 
-void syscall_exception_handler_support(support_t*, state_t*);
+void syscall_exception_handler_support(support_t*);
 
 void program_trap_exception_handler(support_t*);
 

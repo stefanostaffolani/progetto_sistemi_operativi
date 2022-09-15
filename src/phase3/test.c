@@ -28,6 +28,10 @@ int test(){
     state.pc_epc = (memaddr) UPROCSTARTADDR;
     state.reg_t9 = (memaddr) UPROCSTARTADDR;
     state.status = IEPON | IMON | TEBITON | USERPON;
+    //klog_print("status : ");
+    //klog_print_hex(state.status);
+    //klog_print("\n");
+    breakpoint();
     //klog_print("sto per fare il ciclo for in test\n");
     for(int i=0;i<1;i++){       // l'asid va da 1 a 8 inclusi
         state.entry_hi = (i+1) << ASIDSHIFT;
@@ -42,7 +46,7 @@ int test(){
         // funzione che inizializza la pagetable
         init_pagtable(i+1, &support_array[i]);
 
-        klog_print("sto per fare CREATEPROCESS\n");
+        //klog_print("sto per fare CREATEPROCESS\n");
         SYSCALL(CREATEPROCESS, (int)&state, PROCESS_PRIO_LOW, (int)&support_array[i]);
         //klog_print_hex(pid);
     }
