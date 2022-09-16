@@ -91,17 +91,22 @@ int Write_to_Printer_SYS3(support_t *support){
     return len;
 }
 
-int Write_to_Terminal_SYS4(support_t *support){
-    size_t len = (size_t)support->sup_exceptState[GENERALEXCEPT].reg_a1;
-    char *c = (char *)support->sup_exceptState[GENERALEXCEPT].reg_a2;
-    klog_print("entro in writeTerminal\n");
+int Write_to_Terminal_SYS4(support_t *support){  //TODO: stampare tutto
+    size_t len = (size_t)support->sup_exceptState[GENERALEXCEPT].reg_a2;
+    char *c = (char *)support->sup_exceptState[GENERALEXCEPT].reg_a1;
+    klog_print("entro in writeTerminal\nchar: ");
+    klog_print_hex(*c);
     breakpoint();
     dtpreg_t *device = (dtpreg_t *)DEV_REG_ADDR(IL_TERMINAL, support->sup_asid-1);
     SYSCALL(PASSEREN, (int)&sem_write_terminal, 0, 0);
     for(size_t i = 0; i < len; i++){
         memaddr value = PRINTCHR | (memaddr)(c[i] << 8);       // pops 5.7 transmitted char non sono i primi 8 bit ma i secondi da dx
         int status = SYSCALL(DOIO, (int)&((termreg_t *)device)->transm_command, (int)value, 0);
-        if((status & 0x000000FF) != READY){         // 0x000000FF mi isola il primo byte
+        //klog_print("status DOIO: ");
+        //klog_print_hex(status);
+        //klog_print("\n");
+        //breakpoint();
+        if((status & 0x0000000F) != 5){         // 0x0000000F mi servono solo da 0 a 5
             SYSCALL(VERHOGEN,(int)&sem_write_terminal,0,0);
             return -status;
         }
@@ -113,13 +118,19 @@ int Write_to_Terminal_SYS4(support_t *support){
 int Read_from_Terminal_SYS5(support_t *support){
     char *buffer = (char *)support->sup_exceptState[GENERALEXCEPT].reg_a1;
     //size_t len = support->sup_exceptState[GENERALEXCEPT].reg_a2;
+    klog_print("entro in Read Term\n");
+    breakpoint();
     termreg_t *terminal = (termreg_t *) DEV_REG_ADDR(IL_TERMINAL, support->sup_asid-1);
     SYSCALL(PASSEREN, (int)&sem_read_terminal, 0, 0);
     size_t i = 0;
     char c = '\0';
     while(c != '\n'){
+        klog_print("sto per fare la DOIO\n");
         int status = SYSCALL(DOIO, (int)&(terminal->recv_command), RECVCHAR, 0);   // cfr capitolo 5.7 pops
-        if((status & 0x000000FF) != READY){     // controllare se usare ready o RECVCHAR (5)
+        klog_print("status : ");
+        klog_print_hex(status);
+        breakpoint();
+        if((status & 0x0000000F) != 5){     // controllare se usare ready o RECVCHAR (5)
             SYSCALL(VERHOGEN, (int)&sem_read_terminal, 0, 0);
             return -status;
         }
