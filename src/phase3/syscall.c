@@ -209,6 +209,9 @@ void DO_IO_Device_NSYS5(state_t *except_state) {
                     devNum = j;
                 }
                 else if(devReg->devreg[i][j].term.recv_command == *cmdAddr){
+                    klog_print("recv cmd: ");
+                    klog_print_hex(devReg->devreg[i][j].term.recv_status & 0x0000ff00);
+                    klog_print("\n");
                     intLine = i;    
                     devNum = j + DEVPERINT;     // to map the dev in dSemaphore
                 }

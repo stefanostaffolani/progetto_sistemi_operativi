@@ -126,15 +126,16 @@ int Read_from_Terminal_SYS5(support_t *support){
     char c = '\0';
     while(c != '\n'){
         klog_print("sto per fare la DOIO\n");
+        breakpoint();
         int status = SYSCALL(DOIO, (int)&(terminal->recv_command), RECVCHAR, 0);   // cfr capitolo 5.7 pops
         klog_print("status : ");
         klog_print_hex(status);
         breakpoint();
         if((status & 0x0000000F) != 5){     // controllare se usare ready o RECVCHAR (5)
             SYSCALL(VERHOGEN, (int)&sem_read_terminal, 0, 0);
-            return -status;
+            return -(status & 0x0000000F);
         }
-        c = (char) (0x0000FF00 & status);
+        c = (char) (0x000000FF & (status >> 8));
         *(buffer + i) = c;
         i++;
     }

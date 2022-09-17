@@ -15,6 +15,8 @@ void scheduler(){
         if (prCount == 0) //spegni la macchina
             HALT();     
         else if (prCount > 0 && sbCount > 0){   // aspetta...
+            //klog_print("wait\n");
+            //breakpoint();
             setSTATUS(ALLOFF | IECON | IMON);   //interrupts on and PLT off
             WAIT();
         }else if (prCount > 0 && sbCount == 0){   // purtroppo Deadlock...
