@@ -1,4 +1,4 @@
-#include "pcb.h"
+#include "h/pcb.h"
  
 /*
 *   Per l'implementazione della coda dei processi, inseriamo in testa con list_add(&head)

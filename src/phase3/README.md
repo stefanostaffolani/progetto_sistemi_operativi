@@ -4,4 +4,4 @@
 - Lanciare make.
 
 # Run:
-- Lanciare la configurazione della macchina µMPS3 dentro phase2
+- Lanciare la configurazione della macchina µMPS3 `umps3.json` dentro phase3.

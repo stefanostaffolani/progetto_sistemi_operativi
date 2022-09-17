@@ -1,6 +1,6 @@
-#include "test.h"
-#include "exception.h"
-#include "pager.h"
+#include "h/test.h"
+#include "h/exception.h"
+#include "h/pager.h"
 
 //extern void uTLB_RefillHandler();
 

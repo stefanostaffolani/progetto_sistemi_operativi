@@ -1,4 +1,4 @@
-#include "interrupt.h"
+#include "h/interrupt.h"
 
 void interrupt_exception(unsigned int cause, state_t *exception_state){
  
@@ -78,15 +78,8 @@ void manageNTInt(int line, int dev, state_t *exception_state){
 
     int receive_interr = 0;     
     unsigned int status;
-    // klog_print("linea : ");
-    // klog_print_hex(line);
-    // klog_print(" ");
-    // breakpoint();
     if (line == IL_TERMINAL){ // if it's a terminal sub device
         termreg_t* terminalRegister = (termreg_t*) devAddrBase;
-        // klog_print("recv_status: ");
-        // klog_print_hex(terminalRegister->recv_status);
-        // breakpoint();
         if(((terminalRegister->recv_status & 0x000000FF) != READY) && ((terminalRegister->recv_status & 0x000000FF) != BUSY)){            
             klog_print("recv, mando ACK");
             status = terminalRegister->recv_status;             // Save off the status code from the device’s device register

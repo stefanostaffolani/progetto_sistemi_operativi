@@ -1,4 +1,4 @@
-#include "scheduler.h"
+#include "h/scheduler.h"
 void scheduler(){
     if(!emptyProcQ(&high_priority_queue)){  // la coda ad alta priorita' non e' vuota
         currentProcess = removeProcQ(&high_priority_queue);

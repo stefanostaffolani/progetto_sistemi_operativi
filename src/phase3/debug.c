@@ -5,7 +5,7 @@
  *          `klog_buffer` displays a series of printed lines.
  */
 
-#include "debug.h"
+#include "h/debug.h"
 static void next_char(void);
 static void next_line(void);
 
