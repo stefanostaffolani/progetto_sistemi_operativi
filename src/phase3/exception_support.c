@@ -62,26 +62,30 @@ void Get_TOD_SYS1(state_t *except_state){
 
 void Terminate_SYS2(support_t *support){   // capire se va incrementato il PC anche qua (visto che viene fatto dal kernel)
     if(get_swap_asid(support->sup_asid)){
+        klog_print("sto per teminare\n");
+        breakpoint();
+        update_swap_asid(0,support->sup_asid);
         SYSCALL(VERHOGEN, (int)&sem_swap, 0, 0);    // controllare se aggiusta da solo il semaforo
         for(int i = 0; i < POOLSIZE; i++){
             if(swap_pool[i].sw_asid == support->sup_asid)    // ottimizzazione
                 swap_pool[i].sw_asid = NOPROC;
         }
-        update_swap_asid(0,support->sup_asid);
     }
     SYSCALL(VERHOGEN, (int)&master_semaphore, 0, 0);
     SYSCALL(TERMPROCESS,0,0,0);
 }
 
 int Write_to_Printer_SYS3(support_t *support){
-    size_t len = (size_t)support->sup_exceptState[GENERALEXCEPT].reg_a1;
-    char *c = (char *)support->sup_exceptState[GENERALEXCEPT].reg_a2;      // stringa da scrivere
+    size_t len = (size_t)support->sup_exceptState[GENERALEXCEPT].reg_a2;
+    char *c = (char *)support->sup_exceptState[GENERALEXCEPT].reg_a1;      // stringa da scrivere
     //int retval;
+    klog_print("entro in sys3\n");
+    breakpoint();
     dtpreg_t *device = (dtpreg_t *)DEV_REG_ADDR(IL_PRINTER, support->sup_asid-1);     // il device e' asid-1 perche' i device sono 8 (da 0 a 7) e i processi sono 8 (da 1 a 8)
     SYSCALL(PASSEREN,(int)&sem_write_printer,0,0);                         // mutua esclusione per chiamare la DOIO
     for(size_t i = 0; i < len; i++){
         device->data0 = c[i];
-        int status = SYSCALL(DOIO, (int)&device->command, PRINTCHR, 0);
+        int status = SYSCALL(DOIO, (int)&(device->command), PRINTCHR, 0);
         if (status != READY){
             SYSCALL(VERHOGEN, (int)&sem_write_printer, 0, 0);
             return -status;
@@ -112,6 +116,8 @@ int Write_to_Terminal_SYS4(support_t *support){  //TODO: stampare tutto
         }
     }
     SYSCALL(VERHOGEN,(int)&sem_write_terminal,0,0);
+    klog_print("end write\n");
+    breakpoint();
     return len;
 }
 

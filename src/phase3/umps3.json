@@ -8,7 +8,7 @@
     "devices": {
         "flash0": {
             "enabled": true,
-            "file": "testers/strConcat.umps"
+            "file": "testers/printerTest.umps"
         },
         "flash1": {
             "enabled": true,
@@ -32,11 +32,11 @@
         },
         "flash6": {
             "enabled": true,
-            "file": "testers/printerTest.umps"
+            "file": "testers/fibEleven.umps"
         },
         "flash7": {
             "enabled": true,
-            "file": "testers/fibEleven.umps"
+            "file": "testers/strConcat.umps"
         },
         "printer0": {
             "enabled": true,

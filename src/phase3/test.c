@@ -33,7 +33,7 @@ int test(){
     //klog_print("\n");
     breakpoint();
     //klog_print("sto per fare il ciclo for in test\n");
-    for(int i=0;i<1;i++){       // l'asid va da 1 a 8 inclusi
+    for(int i=0;i < UPROCMAX;i++){       // l'asid va da 1 a 8 inclusi
         state.entry_hi = (i+1) << ASIDSHIFT;
         support_array[i].sup_asid = i+1;
         support_array[i].sup_exceptContext[PGFAULTEXCEPT].pc = (memaddr) pager;
