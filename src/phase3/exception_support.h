@@ -1,10 +1,5 @@
 #include "pager.h"
 
-#define PRINTCHR 2    // come definito in pops a pagina 39
-#define SENDCHAR 2    // pops capitolo 5.7
-#define RECVCHAR 2    // pops capitolo 5.7
-
-
 void exception_handler_support();
 
 void syscall_exception_handler_support(support_t*);

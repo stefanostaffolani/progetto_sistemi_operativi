@@ -2,11 +2,8 @@
 
 void init_pagtable(unsigned int asid, support_t *sup){
     int i;
-    klog_print("entro in init pgtb\n");
     for(i=0;i<MAXPAGES-1;i++){
         sup->sup_privatePgTbl[i].pte_entryHI = ((KUSEG | (i << VPNSHIFT)) | (asid << ASIDSHIFT));
-        //klog_print_hex(sup->sup_privatePgTbl[i].pte_entryHI);
-        //klog_print("\n");
         sup->sup_privatePgTbl[i].pte_entryLO = DIRTYON;
     }
     sup->sup_privatePgTbl[i].pte_entryHI  = (0xBFFFF000 | (asid << ASIDSHIFT) );      // ((USERSTACKTOP-1) & 0xFFFFF000) | asid
@@ -28,11 +25,6 @@ int test(){
     state.pc_epc = (memaddr) UPROCSTARTADDR;
     state.reg_t9 = (memaddr) UPROCSTARTADDR;
     state.status = IEPON | IMON | TEBITON | USERPON;
-    //klog_print("status : ");
-    //klog_print_hex(state.status);
-    //klog_print("\n");
-    breakpoint();
-    //klog_print("sto per fare il ciclo for in test\n");
     for(int i=0;i < UPROCMAX;i++){       // l'asid va da 1 a 8 inclusi
         state.entry_hi = (i+1) << ASIDSHIFT;
         support_array[i].sup_asid = i+1;
@@ -45,10 +37,7 @@ int test(){
 
         // funzione che inizializza la pagetable
         init_pagtable(i+1, &support_array[i]);
-
-        //klog_print("sto per fare CREATEPROCESS\n");
         SYSCALL(CREATEPROCESS, (int)&state, PROCESS_PRIO_LOW, (int)&support_array[i]);
-        //klog_print_hex(pid);
     }
     for (int i = 0; i < UPROCMAX; i++){
         SYSCALL(PASSEREN, (int)&master_semaphore, 0, 0);

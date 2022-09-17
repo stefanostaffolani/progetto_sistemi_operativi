@@ -3,10 +3,6 @@
 void exception_handler_support(){
     support_t *support = (support_t *) SYSCALL(GETSUPPORTPTR,0,0,0);
     const int cause = CAUSE_GET_EXCCODE(support->sup_exceptState[GENERALEXCEPT].cause);
-    klog_print("cause : ");
-    klog_print_hex(cause);
-    klog_print("\n");
-    breakpoint();
     switch (cause){
     case 8:       // syscall exception
         syscall_exception_handler_support(support);
@@ -62,8 +58,6 @@ void Get_TOD_SYS1(state_t *except_state){
 
 void Terminate_SYS2(support_t *support){   // capire se va incrementato il PC anche qua (visto che viene fatto dal kernel)
     if(get_swap_asid(support->sup_asid)){
-        klog_print("sto per teminare\n");
-        breakpoint();
         update_swap_asid(0,support->sup_asid);
         SYSCALL(VERHOGEN, (int)&sem_swap, 0, 0);    // controllare se aggiusta da solo il semaforo
         for(int i = 0; i < POOLSIZE; i++){
@@ -78,9 +72,6 @@ void Terminate_SYS2(support_t *support){   // capire se va incrementato il PC an
 int Write_to_Printer_SYS3(support_t *support){
     size_t len = (size_t)support->sup_exceptState[GENERALEXCEPT].reg_a2;
     char *c = (char *)support->sup_exceptState[GENERALEXCEPT].reg_a1;      // stringa da scrivere
-    //int retval;
-    klog_print("entro in sys3\n");
-    breakpoint();
     dtpreg_t *device = (dtpreg_t *)DEV_REG_ADDR(IL_PRINTER, support->sup_asid-1);     // il device e' asid-1 perche' i device sono 8 (da 0 a 7) e i processi sono 8 (da 1 a 8)
     SYSCALL(PASSEREN,(int)&sem_write_printer,0,0);                         // mutua esclusione per chiamare la DOIO
     for(size_t i = 0; i < len; i++){
@@ -98,45 +89,28 @@ int Write_to_Printer_SYS3(support_t *support){
 int Write_to_Terminal_SYS4(support_t *support){  //TODO: stampare tutto
     size_t len = (size_t)support->sup_exceptState[GENERALEXCEPT].reg_a2;
     char *c = (char *)support->sup_exceptState[GENERALEXCEPT].reg_a1;
-    klog_print("entro in writeTerminal\nchar: ");
-    klog_print_hex(*c);
-    breakpoint();
     dtpreg_t *device = (dtpreg_t *)DEV_REG_ADDR(IL_TERMINAL, support->sup_asid-1);
     SYSCALL(PASSEREN, (int)&sem_write_terminal, 0, 0);
     for(size_t i = 0; i < len; i++){
         memaddr value = PRINTCHR | (memaddr)(c[i] << 8);       // pops 5.7 transmitted char non sono i primi 8 bit ma i secondi da dx
         int status = SYSCALL(DOIO, (int)&((termreg_t *)device)->transm_command, (int)value, 0);
-        //klog_print("status DOIO: ");
-        //klog_print_hex(status);
-        //klog_print("\n");
-        //breakpoint();
         if((status & 0x0000000F) != 5){         // 0x0000000F mi servono solo da 0 a 5
             SYSCALL(VERHOGEN,(int)&sem_write_terminal,0,0);
             return -status;
         }
     }
     SYSCALL(VERHOGEN,(int)&sem_write_terminal,0,0);
-    klog_print("end write\n");
-    breakpoint();
     return len;
 }
 
 int Read_from_Terminal_SYS5(support_t *support){
     char *buffer = (char *)support->sup_exceptState[GENERALEXCEPT].reg_a1;
-    //size_t len = support->sup_exceptState[GENERALEXCEPT].reg_a2;
-    klog_print("entro in Read Term\n");
-    breakpoint();
     termreg_t *terminal = (termreg_t *) DEV_REG_ADDR(IL_TERMINAL, support->sup_asid-1);
     SYSCALL(PASSEREN, (int)&sem_read_terminal, 0, 0);
     size_t i = 0;
     char c = '\0';
     while(c != '\n'){
-        klog_print("sto per fare la DOIO\n");
-        breakpoint();
         int status = SYSCALL(DOIO, (int)&(terminal->recv_command), RECVCHAR, 0);   // cfr capitolo 5.7 pops
-        klog_print("status : ");
-        klog_print_hex(status);
-        breakpoint();
         if((status & 0x0000000F) != 5){     // controllare se usare ready o RECVCHAR (5)
             SYSCALL(VERHOGEN, (int)&sem_read_terminal, 0, 0);
             return -(status & 0x0000000F);

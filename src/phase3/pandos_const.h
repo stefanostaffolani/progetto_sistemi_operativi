@@ -7,7 +7,8 @@
  *
  ****************************************************************************/
 
-// clang-format off
+#include <umps3/umps/const.h>
+
 /* Hardware & software constants */
 #define PAGESIZE 4096 /* page size in bytes	*/
 #define WORDLEN  4    /* word size in bytes	*/
@@ -169,7 +170,14 @@
 #define POOLSIZE (UPROCMAX * 2)
 /* End of Mikeyg constants */
 
-#define STCK(T) ((T) = ((*((cpu_t *) TODLOADDR)) / (*((cpu_t *) TIMESCALEADDR))))
-//clang-format on
+
+/* useful const */
+#define MAXPROC 20
+#define MAXSEM  49
+#define NUMDEV  5
+
+#define PRINTCHR 2    // come definito in pops a pagina 39
+#define SENDCHAR 2    // pops capitolo 5.7
+#define RECVCHAR 2    // pops capitolo 5.7
 
 #endif

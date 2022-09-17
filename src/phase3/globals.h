@@ -1,5 +1,5 @@
 //#include "../phase2/pandos_types.h"
-#include "../phase2/pandos_const.h"
+#include "pandos_const.h"
 #include "asl.h"
 #include "pcb.h"
 #include "/usr/include/umps3/umps/cp0.h"
