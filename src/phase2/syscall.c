@@ -1,4 +1,4 @@
-#include "syscall.h"
+#include "h/syscall.h"
 
 extern struct list_head semd_h;
 

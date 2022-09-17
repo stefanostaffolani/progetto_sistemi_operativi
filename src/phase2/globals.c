@@ -1,4 +1,4 @@
-#include "globals.h"
+#include "h/globals.h"
 
 cpu_t startTime;
 state_t* processor_state;
