@@ -107,10 +107,13 @@ void Terminate_SYS2(support_t *support){
  * @return int 
  */
 int Write_to_Printer_SYS3(support_t *support){
+    if ((memaddr) support->sup_exceptState[GENERALEXCEPT].reg_a1 < KUSEG){             // if reg_a1 is out of process space
+        Terminate_SYS2(support);
+    }
     size_t len = (size_t)support->sup_exceptState[GENERALEXCEPT].reg_a2;
-    char *c = (char *)support->sup_exceptState[GENERALEXCEPT].reg_a1;      // stringa da scrivere
-    dtpreg_t *device = (dtpreg_t *)DEV_REG_ADDR(IL_PRINTER, support->sup_asid-1);     // il device e' asid-1 perche' i device sono 8 (da 0 a 7) e i processi sono 8 (da 1 a 8)
-    SYSCALL(PASSEREN,(int)&sem_write_printer[support->sup_asid-1],0,0);                         // mutua esclusione per chiamare la DOIO
+    char *c = (char *)support->sup_exceptState[GENERALEXCEPT].reg_a1;                  // the string
+    dtpreg_t *device = (dtpreg_t *)DEV_REG_ADDR(IL_PRINTER, support->sup_asid-1);      // the device is asid-1 becausei devices are 8 (0-7) and alse process (da 1-8)
+    SYSCALL(PASSEREN,(int)&sem_write_printer[support->sup_asid-1],0,0);                // mutex for DOIO
     for(size_t i = 0; i < len; i++){
         device->data0 = c[i];
         int status = SYSCALL(DOIO, (int)&(device->command), PRINTCHR, 0);
@@ -134,15 +137,18 @@ int Write_to_Printer_SYS3(support_t *support){
  * @param support 
  * @return int 
  */
-int Write_to_Terminal_SYS4(support_t *support){  
+int Write_to_Terminal_SYS4(support_t *support){
+    if ((memaddr) support->sup_exceptState[GENERALEXCEPT].reg_a1 < KUSEG){      // if reg_a1 is out of process space
+        Terminate_SYS2(support);
+    }
     size_t len = (size_t)support->sup_exceptState[GENERALEXCEPT].reg_a2;
     char *c = (char *)support->sup_exceptState[GENERALEXCEPT].reg_a1;
     dtpreg_t *device = (dtpreg_t *)DEV_REG_ADDR(IL_TERMINAL, support->sup_asid-1);
     SYSCALL(PASSEREN, (int)&sem_write_terminal[support->sup_asid-1], 0, 0);
     for(size_t i = 0; i < len; i++){
-        memaddr value = PRINTCHR | (memaddr)(c[i] << 8);       // pops 5.7 value = |xxxxxxxx|xxxxxxxx|char|PRINTCHR|
+        memaddr value = PRINTCHR | (memaddr)(c[i] << 8);                        // pops 5.7 value = |xxxxxxxx|xxxxxxxx|char|PRINTCHR|
         int status = SYSCALL(DOIO, (int)&((termreg_t *)device)->transm_command, (int)value, 0);
-        if((status & 0x0000000F) != 5){         // 0x0000000F mi servono solo da 0 a 5
+        if((status & 0x0000000F) != 5){                                         // 0x0000000F mi servono solo da 0 a 5
             SYSCALL(VERHOGEN,(int)&sem_write_terminal[support->sup_asid-1],0,0);
             return -status;
         }
@@ -163,22 +169,25 @@ int Write_to_Terminal_SYS4(support_t *support){
  * @return size_t 
  */
 size_t Read_from_Terminal_SYS5(support_t *support){
+    if ((memaddr) support->sup_exceptState[GENERALEXCEPT].reg_a1 < KUSEG){          // if reg_a1 is out of process space
+        Terminate_SYS2(support);
+    }
     char *buffer = (char *)support->sup_exceptState[GENERALEXCEPT].reg_a1;
     termreg_t *terminal = (termreg_t *) DEV_REG_ADDR(IL_TERMINAL, support->sup_asid-1);
     SYSCALL(PASSEREN, (int)&sem_read_terminal[support->sup_asid-1], 0, 0);
     size_t i = 0;
     char c = '\0';
     while(c != '\n'){
-        int status = SYSCALL(DOIO, (int)&(terminal->recv_command), RECVCHAR, 0);   // cfr 5.7 pops
+        int status = SYSCALL(DOIO, (int)&(terminal->recv_command), RECVCHAR, 0);    // cfr 5.7 pops
         if((status & 0x0000000F) != 5){     
             SYSCALL(VERHOGEN, (int)&sem_read_terminal[support->sup_asid-1], 0, 0);
             return -(status & 0x0000000F);
         }
-        c = (char) (0x000000FF & (status >> 8));   // status = |xxxxxxxx|xxxxxxxx|recvchar|xxxxxxxx|
+        c = (char) (0x000000FF & (status >> 8));                                    // status = |xxxxxxxx|xxxxxxxx|recvchar|xxxxxxxx|
         *(buffer + i) = c;
         i++;
     }
     SYSCALL(VERHOGEN, (int)&sem_read_terminal[support->sup_asid-1], 0, 0);
-    *(buffer + i) = '\0';                               // ending string
+    *(buffer + i) = '\0';                                                           // ending string
     return i;
 }

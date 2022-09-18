@@ -35,7 +35,8 @@ int sem_write_printer[UPROCMAX];   // semafori per le syscall write (SYS3 e SYS4
 int sem_write_terminal[UPROCMAX];
 int sem_read_terminal[UPROCMAX];   // semaforo per la syscall read (SYS5)
 int master_semaphore = 0;
-memaddr swap_pool_address = 0x20020000;   
+// sum of .data (virtual) start address and .data file size taken from umps3-objdump -h ./kernel.core.umps
+memaddr swap_pool_address = 0x20007000 + 0x00003000;  
 
 void memcpy(void *dest, const void *src, size_t n){
     for (size_t i = 0; i < n; i++){
