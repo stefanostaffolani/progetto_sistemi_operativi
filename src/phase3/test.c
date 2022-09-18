@@ -1,7 +1,7 @@
 #include "h/test.h"
 
 /**
- * @brief sets DIRTYON on each page and initialize them.
+ * @brief sets DIRTYON on each page and initialize them with asid and virtual page number.
  * 
  * @param asid 
  * @param sup 
