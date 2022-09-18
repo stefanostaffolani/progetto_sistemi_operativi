@@ -1,6 +1,4 @@
 #include "h/pager.h"
-   
-//TODO: controllare gli include
 
 /**
  * @brief swap_asid used for track process that works in the swap pool
