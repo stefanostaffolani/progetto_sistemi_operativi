@@ -14,7 +14,7 @@ int Write_to_Printer_SYS3(support_t*);
 
 int Write_to_Terminal_SYS4(support_t*);
 
-int Read_from_Terminal_SYS5(support_t*);
+size_t Read_from_Terminal_SYS5(support_t*);
 
 
 

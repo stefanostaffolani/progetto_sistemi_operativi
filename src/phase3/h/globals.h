@@ -28,10 +28,10 @@ extern int dSemaphores[MAXSEM];
 
 extern swap_t swap_pool[POOLSIZE];
 extern int sem_swap;   // per mutua esclusione sulla swap pool
-extern int swap_asid[8];
-extern int sem_write_printer;   // semafori per le syscall write (SYS3 e SYS4)
-extern int sem_write_terminal;
-extern int sem_read_terminal;   // semaforo per la syscall read (SYS5)
+extern int swap_asid[UPROCMAX];
+extern int sem_write_printer[UPROCMAX];   // semafori per le syscall write (SYS3 e SYS4)
+extern int sem_write_terminal[UPROCMAX];
+extern int sem_read_terminal[UPROCMAX];   // semaforo per la syscall read (SYS5)
 extern int master_semaphore;
 extern memaddr swap_pool_address;
 
@@ -39,3 +39,4 @@ void breakpoint();
 void memcpy(void *, const void *, size_t);
 void insert_to_readyq(pcb_t *);
 void set_time(pcb_t *, cpu_t);
+void init_semaphores(int *);

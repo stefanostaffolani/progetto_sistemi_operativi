@@ -24,6 +24,9 @@ void init_pagtable(unsigned int asid, support_t *sup){
  */
 int test(){
     // init data structures
+    init_semaphores(sem_read_terminal);
+    init_semaphores(sem_write_printer);
+    init_semaphores(sem_write_terminal);
     init_swap_pool();
     init_swap_asid();
     
