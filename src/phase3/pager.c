@@ -2,25 +2,50 @@
    
 //TODO: controllare gli include
 
+/**
+ * @brief swap_asid is used for 
+ * 
+ */
 void init_swap_asid(){
     for (int i = 0; i < 8; i++)
         swap_asid[i] = 0;
 }
 
+/**
+ * @brief 
+ * 
+ * @param value 
+ * @param asid 
+ */
 void update_swap_asid(int value, int asid){   // value is 1 or 0 (1 if sem is used, 0 else)
     swap_asid[asid-1] = value;
 }
 
+/**
+ * @brief Get the swap asid object
+ * 
+ * @param asid 
+ * @return int 
+ */
 int get_swap_asid(int asid){
     return swap_asid[asid-1];
 }
 
+/**
+ * @brief 
+ * 
+ */
 void init_swap_pool(){
     for(int i = 0; i < POOLSIZE; i++){
         swap_pool[i].sw_asid = NOPROC;
     }
 }
 
+/**
+ * @brief 
+ * 
+ * @return int 
+ */
 int replace_algo(){
     int i;
     //static int index;  // per il rimpiazzamento
@@ -36,13 +61,15 @@ int replace_algo(){
     }
 }
 
-/* TLB-Refill Handler */
-/* One can place debug calls here, but not calls to print */
+/**
+ * @brief 
+ * 
+ */
 void uTLB_RefillHandler() {
     state_t *saved_state = (state_t *)BIOSDATAPAGE;
-    unsigned int index = (saved_state->entry_hi & GETPAGENO) >> VPNSHIFT;  /* prendo campo VPN */
+    unsigned int index = (saved_state->entry_hi & GETPAGENO) >> VPNSHIFT;  // take VPN 
     if (index == 0x3FFFF){
-        index = 31;   // accede allo STACK
+        index = 31;   // STACK access
     }
     pteEntry_t pg = currentProcess->p_supportStruct->sup_privatePgTbl[index];
     setENTRYHI(pg.pte_entryHI);
@@ -51,6 +78,14 @@ void uTLB_RefillHandler() {
     LDST(saved_state);
 }
 
+/**
+ * @brief 
+ * 
+ * @param operation 
+ * @param asid 
+ * @param blocknumber 
+ * @param frame_addr 
+ */
 void rw_flash(int operation, int asid, size_t blocknumber, memaddr frame_addr){
     dtpreg_t *flashdev = (dtpreg_t *) DEV_REG_ADDR(FLASHINT, asid-1);
     flashdev->data0 = frame_addr;    // swap_pool + index
@@ -61,13 +96,25 @@ void rw_flash(int operation, int asid, size_t blocknumber, memaddr frame_addr){
     }
 }
 
+/**
+ * @brief 
+ * 
+ * @param index_swap 
+ * @param vpn 
+ * @param pageno 
+ * @param sup 
+ */
 void update_swap_pool(int index_swap, unsigned int vpn, unsigned int pageno, support_t *sup){
     swap_pool[index_swap].sw_asid = sup->sup_asid;
     swap_pool[index_swap].sw_pageNo = (int)vpn;
-    swap_pool[index_swap].sw_pte = sup->sup_privatePgTbl + pageno;   // non serve & perche' e' gia' un array !!
+    swap_pool[index_swap].sw_pte = sup->sup_privatePgTbl + pageno;
    
 }
 
+/**
+ * @brief 
+ * 
+ */
 void pager(){
     support_t *sup = (support_t *) SYSCALL(GETSUPPORTPTR,0,0,0);
     int code = CAUSE_GET_EXCCODE(sup->sup_exceptState->cause);
@@ -95,7 +142,6 @@ void pager(){
                 TLBWI();
             }
             setSTATUS(IECON | getSTATUS());
-            klog_print("sto per fare rw_flash dentro if\n");
             // forse serve if di controllo per 0x3ffff
             unsigned int page_in_frame = (swap_pool[index_swap].sw_pte->pte_entryHI & GETPAGENO) >> VPNSHIFT;
             rw_flash(FLASHWRITE, swap_pool[index_swap].sw_asid, page_in_frame, frame_addr);

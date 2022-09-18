@@ -1,5 +1,11 @@
 #include "h/test.h"
 
+/**
+ * @brief sets DIRTYON on each page and initialize them.
+ * 
+ * @param asid 
+ * @param sup 
+ */
 void init_pagtable(unsigned int asid, support_t *sup){
     int i;
     for(i=0;i<MAXPAGES-1;i++){
@@ -10,9 +16,14 @@ void init_pagtable(unsigned int asid, support_t *sup){
     sup->sup_privatePgTbl[i].pte_entryLO = DIRTYON;
 }
 
-
+/**
+ * @brief Test process, it creates the 8 U-proc and wait until the end in the master_semaphore.
+ * for each process it initializes the support structure from support_array[]. 
+ * 
+ * @return int 
+ */
 int test(){
-    // inizializzare le strutture dati
+    // init data structures
     init_swap_pool();
     init_swap_asid();
     
@@ -35,7 +46,6 @@ int test(){
         support_array[i].sup_exceptContext[GENERALEXCEPT].stackPtr = (memaddr) ramtop - ((i+1) * PAGESIZE * 2);
         support_array[i].sup_exceptContext[GENERALEXCEPT].status = IEPON | IMON | TEBITON;
 
-        // funzione che inizializza la pagetable
         init_pagtable(i+1, &support_array[i]);
         SYSCALL(CREATEPROCESS, (int)&state, PROCESS_PRIO_LOW, (int)&support_array[i]);
     }

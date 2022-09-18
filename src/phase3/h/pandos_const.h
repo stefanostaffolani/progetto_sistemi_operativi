@@ -180,4 +180,10 @@
 #define SENDCHAR 2    // pops capitolo 5.7
 #define RECVCHAR 2    // pops capitolo 5.7
 
+#define GETTOD 1
+#define TERMINATE 2
+#define WRITETOPRINTER 3
+#define WRITETOTERMINAL 4
+#define READFROMTERMINAL 5
+
 #endif
