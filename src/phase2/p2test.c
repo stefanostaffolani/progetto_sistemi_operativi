@@ -15,11 +15,11 @@
  *		Modified by Michael Goldweber on June 19, 2020
  */
 
-#include "pandos_const.h"
-#include "pandos_types.h"
+#include "h/pandos_const.h"
+#include "h/pandos_types.h"
 #include <umps3/umps/libumps.h>
-#include "debug.h"
-#include "globals.h"
+#include "h/debug.h"
+#include "h/globals.h"
 
 typedef unsigned int devregtr;
 

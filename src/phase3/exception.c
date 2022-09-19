@@ -26,7 +26,7 @@ void syscall_exception(state_t *exception_state){
     unsigned int a0 = exception_state->reg_a0;
     unsigned int a1 = exception_state->reg_a1;
     
-    if ((exception_state->status & STATUS_KUp) == STATUS_KUp){ //il processo non e' in kernel mode
+    if ((exception_state->status & STATUS_KUc) == STATUS_KUc){ //il processo non e' in kernel mode
         exception_state->cause = (exception_state->cause & ~CAUSE_EXCCODE_MASK) | (EXC_RI << CAUSE_EXCCODE_BIT);
         pass_up_or_die(GENERALEXCEPT, exception_state);
     }

@@ -8,7 +8,8 @@ void interrupt_exception(unsigned int cause, state_t *exception_state){
     STCK(interval_timer);   //save the interrupt starting time
 
     // for each line manage the interrupt
-    for (int i = 1; i < 8; i++) {
+    breakpoint();
+    for (int i = 0; i < 8; i++) {
         if (cause & CAUSE_IP(i))
             manageInterr(i, exception_state);
     }
@@ -16,7 +17,7 @@ void interrupt_exception(unsigned int cause, state_t *exception_state){
 
 void manageInterr(int line, state_t *exception_state){
 
-    if(line == 1){  
+    if(line == IL_CPUTIMER){  
         /* Acknowledge the PLT interrupt by loading the timer with a new value.
         [Section 4.1.4-pops]*/ 
         setTIMER(0xFFFFFFFF);  
@@ -33,7 +34,7 @@ void manageInterr(int line, state_t *exception_state){
         }
         scheduler();
     }
-    else if(line == 2){  // reload interval timer
+    else if(line == IL_TIMER){  // reload interval timer
 
         /*Acknowledge the interrupt by loading the Interval Timer with a new
         value: 100 milliseconds. [Section 4.1.3-pops]*/
@@ -60,6 +61,7 @@ void manageInterr(int line, state_t *exception_state){
         devregarea_t *deviceRegs = (devregarea_t*) RAMBASEADDR;   
         unsigned int bit_check = 1;
         for(int i = 0; i < DEVPERINT; i++){         // DEVPERINT -> devices per interrupt = 8
+            breakpoint();
             if(deviceRegs->interrupt_dev[line-3] & bit_check)
                 manageNTInt(line, i, exception_state);
             bit_check = bit_check << 1;
@@ -76,17 +78,14 @@ void manageNTInt(int line, int dev, state_t *exception_state){
 
     int receive_interr = 0;     
     unsigned int status;
-
-    if (line == 7){ // if it's a terminal sub device
+    if (line == IL_TERMINAL){ // if it's a terminal sub device
         termreg_t* terminalRegister = (termreg_t*) devAddrBase;
-
-        if((terminalRegister->recv_status != READY) && (terminalRegister->recv_status != BUSY)){            
+        if(((terminalRegister->recv_status & 0x000000FF) != READY) && ((terminalRegister->recv_status & 0x000000FF) != BUSY)){            
+            klog_print("recv, mando ACK");
             status = terminalRegister->recv_status;             // Save off the status code from the device’s device register
             terminalRegister->recv_command = ACK;               // Acknowledge the interrupt    
             receive_interr = 1;
-        }                       
-
-        if((terminalRegister->transm_status != BUSY) && (terminalRegister->transm_status != READY)){
+        }else if((terminalRegister->transm_status != BUSY) && (terminalRegister->transm_status != READY)){
            status = terminalRegister->transm_status;            
            terminalRegister->transm_command = ACK; 
         }

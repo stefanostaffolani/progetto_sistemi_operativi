@@ -28,6 +28,16 @@ passupvector_t* PassUpVector;
 /* memory info to calculate ramtop*/
 devregarea_t* memInfo;
 
+swap_t swap_pool[POOLSIZE];
+int sem_swap = 1;   // per mutua esclusione sulla swap pool
+int swap_asid[8];
+int sem_write_printer[UPROCMAX];   // semafori per le syscall write (SYS3 e SYS4)
+int sem_write_terminal[UPROCMAX];
+int sem_read_terminal[UPROCMAX];   // semaforo per la syscall read (SYS5)
+int master_semaphore = 0;
+// sum of .data (virtual) start address and .data file size taken from umps3-objdump -h ./kernel.core.umps
+memaddr swap_pool_address = 0x20007000 + 0x00003000;  
+
 void memcpy(void *dest, const void *src, size_t n){
     for (size_t i = 0; i < n; i++){
         ((unsigned char*)dest)[i] = ((unsigned char*)src)[i];
@@ -45,4 +55,11 @@ void set_time(pcb_PTR proc, cpu_t stime){
     cpu_t endTime;
     STCK(endTime);
     proc->p_time += endTime - stime;
+}
+
+void init_semaphores(int *sem_array){
+    for(int i = 0; i < UPROCMAX; i++){
+        *sem_array = 1;
+        sem_array++;
+    }
 }
