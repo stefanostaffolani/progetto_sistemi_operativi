@@ -1,4 +1,4 @@
-## Sorgenti relativi alla fase 2 del progetto PandOs.
+## Sorgenti relativi alla fase 3 del progetto PandOs.
 
 # Compilazione:
 - Lanciare make.
